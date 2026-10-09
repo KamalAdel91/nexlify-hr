@@ -237,3 +237,430 @@
 /* merged departments: company dots */
 .noc-co-dots { display: flex; gap: 5px; margin-top: 5px; }
 .noc-co-dots .noc-dot { width: 9px; height: 9px; }
+
+/* employees with no manager and no team: compact grid under the trees */
+.noc-loose { display: flex; flex-direction: column; align-items: center; margin-top: 56px; }
+.noc-loose:first-child { margin-top: 0; }
+.noc-loose-title {
+    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 16px;
+    font-size: var(--text-sm); font-weight: 600; color: var(--text-muted);
+}
+.noc-loose-count {
+    padding: 1px 9px; border-radius: 999px; font-size: var(--text-xs);
+    background: var(--subtle-fg); color: var(--text-color);
+}
+.noc-loose-grid { display: grid; gap: 14px; }
+.noc-loose-grid > .noc-node { padding: 0; }
+
+/* many leaf reports under one manager: grid instead of one wide row */
+.noc-children.noc-leaf-grid {
+    display: grid; grid-template-columns: repeat(var(--noc-cols, 4), 256px);
+    gap: 12px; justify-content: center;
+}
+.noc-children.noc-leaf-grid::before { height: calc(var(--noc-gap) - 6px); }
+.noc-children.noc-leaf-grid > .noc-node { padding: 0; }
+.noc-children.noc-leaf-grid > .noc-node::before,
+.noc-children.noc-leaf-grid > .noc-node::after { display: none; }
+
+/* ---------- horizontal layout (manager beside, reports stacked) ---------- */
+.noc-h .noc-root { flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 28px; }
+.noc-h .noc-node { flex-direction: row; align-items: center; }
+.noc-h .noc-children {
+    flex-direction: column; justify-content: center; align-items: flex-start;
+    padding-top: 0 !important; padding-inline-start: var(--noc-gap) !important;
+}
+.noc-h .noc-children::before {
+    top: 50%; inset-inline-start: 0; height: 0; width: var(--noc-gap);
+    border: none; border-top: var(--noc-w) solid var(--noc-line);
+}
+.noc-h .noc-children > .noc-node { padding-inline: 0; padding-block: 6px; padding-inline-start: calc(var(--noc-gap) / 2); }
+.noc-h .noc-children > .noc-node::before,
+.noc-h .noc-children > .noc-node:first-child::before,
+.noc-h .noc-children > .noc-node:last-child::before {
+    display: block; top: 50%; inset-inline-start: 0; height: 0; width: calc(var(--noc-gap) / 2);
+    border: none; border-top: var(--noc-w) solid var(--noc-line);
+}
+.noc-h .noc-children > .noc-node::after,
+.noc-h .noc-children > .noc-node:first-child::after,
+.noc-h .noc-children > .noc-node:last-child::after {
+    display: block; top: 0; bottom: 0; inset-inline-start: 0; inset-inline-end: auto; height: auto; width: 0;
+    border: none; border-inline-start: var(--noc-w) solid var(--noc-line); border-radius: 0;
+}
+.noc-h .noc-children > .noc-node:first-child::after { top: 50%; }
+.noc-h .noc-children > .noc-node:last-child::after { bottom: 50%; }
+.noc-h .noc-children > .noc-node:only-child::after { display: none; }
+.noc-h .noc-toggle {
+    bottom: auto; top: 50%; left: auto; inset-inline-end: -12px; transform: translateY(-50%);
+}
+.noc-h .noc-toggle .noc-ic { transform: rotate(-90deg); }
+[dir="rtl"] .noc-h .noc-toggle .noc-ic { transform: rotate(90deg); }
+/* leaf grid beside the manager in horizontal mode */
+.noc-h .noc-children.noc-leaf-grid { display: grid; align-items: center; }
+.noc-h .noc-children.noc-leaf-grid > .noc-node { padding: 0; }
+.noc-h .noc-children.noc-leaf-grid > .noc-node::before,
+.noc-h .noc-children.noc-leaf-grid > .noc-node::after { display: none; }
+.noc-h .noc-loose { align-items: flex-start; }
+
+/* ---------- focus view ---------- */
+.noc-focus { display: flex; flex-direction: column; align-items: center; min-width: 100%; }
+.noc-f-line { width: var(--noc-w); height: 22px; background: var(--noc-line); flex-shrink: 0; }
+.noc-f-chain .noc-card { opacity: .82; transform: scale(.94); }
+.noc-f-chain .noc-card:hover { opacity: 1; transform: scale(.96); }
+.noc-f-center .noc-card {
+    width: 300px; border-color: var(--noc-co);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--noc-co) 18%, transparent), 0 10px 28px rgba(0, 0, 0, .08);
+}
+.noc-f-title {
+    display: inline-flex; align-items: center; gap: 8px; margin: 6px 0 14px;
+    font-size: var(--text-sm); font-weight: 600; color: var(--text-muted);
+}
+.noc-f-grid { display: grid; gap: 14px; justify-content: center; }
+.noc-f-empty { margin-top: 18px; font-size: var(--text-sm); color: var(--text-muted); }
+.noc-f-top { border-radius: 999px; }
+
+/* ---------- toolbar ---------- */
+.noc-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 10px; }
+.noc-seg { display: inline-flex; padding: 2px; border-radius: 8px; background: var(--subtle-fg); }
+.noc-seg button {
+    border: 0; background: transparent; padding: 4px 12px; border-radius: 6px;
+    font-size: var(--text-sm); color: var(--text-muted); cursor: pointer;
+}
+.noc-seg button.active { background: var(--card-bg); color: var(--text-color); font-weight: 500; box-shadow: 0 1px 2px rgba(0, 0, 0, .08); }
+.noc-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-inline-start: auto; }
+.noc-tools .btn { display: inline-flex; align-items: center; gap: 5px; }
+.noc-tools .btn.active {
+    color: var(--primary); border-color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 10%, var(--card-bg));
+}
+.noc-sep { width: 1px; height: 18px; background: var(--border-color); margin: 0 2px; }
+.noc-wrap { height: calc(100vh - 235px); }
+
+/* focus: employees with no manager */
+.noc-f-loose {
+    display: flex; flex-direction: column; align-items: center; min-width: 60%;
+    margin-top: 36px; padding-top: 24px; border-top: 1px dashed var(--border-color);
+}
+.noc-f-loose .noc-f-title .noc-ic { width: 14px; height: 14px; }
+
+/* ---------- smaller cards ---------- */
+.noc-wrap { --noc-card-w: 216px; }
+.noc-card {
+    width: var(--noc-card-w); gap: 7px; border-radius: 13px;
+    padding: 10px 11px 11px; padding-inline-start: 16px;
+}
+.noc-card::before { inset-block: 12px; inset-inline-start: 6px; }
+.noc-card-head { gap: 9px; }
+.noc-avatar { width: 34px; height: 34px; font-size: 11.5px; }
+.noc-dept-icon { width: 34px; height: 34px; border-radius: 10px; }
+.noc-dept-icon .noc-ic { width: 16px; height: 16px; }
+.noc-name { font-size: 12.5px; }
+.noc-sub { font-size: 11px; }
+.noc-card-meta { gap: 3px; padding-top: 7px; }
+.noc-meta-row { font-size: 11px; }
+.noc-tag { font-size: 10.5px; padding: 1px 7px; }
+.noc-children.noc-leaf-grid { grid-template-columns: repeat(var(--noc-cols, 4), var(--noc-card-w)); }
+.noc-f-center .noc-card { width: 260px; }
+
+/* ---------- compact cards: avatar + name + title, team count as a corner badge ---------- */
+.noc-wrap { --noc-card-w: 196px; }
+.noc-card { gap: 0; padding: 8px 10px; padding-inline-start: 14px; border-radius: 12px; }
+.noc-card::before { inset-block: 10px; inset-inline-start: 5px; }
+.noc-card-meta { display: none; }
+.noc-card-foot { position: absolute; top: 7px; inset-inline-end: 7px; gap: 4px; }
+.noc-card-foot .noc-tag:not(.noc-tag-team):not(.noc-tag-vac) { display: none; }
+.noc-card-foot .noc-tag { padding: 0 6px; font-size: 10px; line-height: 17px; }
+.noc-card-foot .noc-tag .noc-ic { width: 10px; height: 10px; }
+.noc-card:has(.noc-tag-team, .noc-tag-vac) .noc-card-head { padding-inline-end: 40px; }
+.noc-avatar { width: 32px; height: 32px; font-size: 11px; }
+.noc-dept-icon { width: 32px; height: 32px; }
+.noc-f-center .noc-card { width: 240px; padding: 12px 14px; padding-inline-start: 18px; }
+.noc-f-center .noc-avatar, .noc-f-center .noc-dept-icon { width: 40px; height: 40px; font-size: 13px; }
+.noc-f-center .noc-name { font-size: 13.5px; }
+
+/* employee code under the title */
+.noc-code {
+    margin-top: 1px; font-size: 10.5px; line-height: 1.3; color: var(--text-muted);
+    font-variant-numeric: tabular-nums; letter-spacing: .02em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ---------- bottom row: code + team count ---------- */
+.noc-card:has(.noc-bottom) .noc-card-foot { display: none; }
+.noc-card:has(.noc-bottom) .noc-card-head { padding-inline-end: 0; }
+.noc-bottom {
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
+    margin-top: 5px; padding-top: 5px;
+    border-top: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+}
+.noc-bottom .noc-code { margin: 0; }
+.noc-team {
+    display: inline-flex; align-items: center; gap: 3px; flex-shrink: 0;
+    padding: 0 7px; border-radius: 999px; font-size: 10.5px; line-height: 18px; font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--noc-co);
+    background: color-mix(in srgb, var(--noc-co) 13%, transparent);
+}
+.noc-team .noc-ic { width: 10px; height: 10px; }
+.noc-name { letter-spacing: -.005em; }
+.noc-sub { margin-top: 1px; }
+
+/* hover: no movement (moving cards slip out from under the cursor and cancel the hover card) */
+.noc-card:hover,
+.noc-card.noc-leaf:hover,
+.noc-f-chain .noc-card:hover {
+    transform: none;
+    border-color: color-mix(in srgb, var(--noc-co, var(--primary)) 55%, var(--border-color));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .05), 0 10px 22px rgba(0, 0, 0, .08);
+}
+.noc-f-chain .noc-card { transform: none; }
+
+/* ---------- levels control ---------- */
+.noc-levels { align-items: center; }
+.noc-seg-label { padding: 0 6px 0 8px; font-size: var(--text-xs); color: var(--text-muted); }
+.noc-levels button { padding: 3px 9px; min-width: 26px; }
+
+/* ---------- head of the hierarchy ---------- */
+.noc-card.noc-top {
+    width: calc(var(--noc-card-w) + 36px);
+    padding-top: 16px;
+    background: color-mix(in srgb, var(--noc-co) 9%, var(--card-bg));
+    border: 1.5px solid color-mix(in srgb, var(--noc-co) 60%, var(--border-color));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--noc-co) 12%, transparent), 0 8px 24px rgba(0, 0, 0, .08);
+}
+.noc-card.noc-top .noc-avatar { width: 42px; height: 42px; font-size: 14px; }
+.noc-card.noc-top .noc-name { font-size: 14px; }
+.noc-crown {
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%); z-index: 1;
+    display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+    padding: 1px 10px; border-radius: 999px; font-size: 10.5px; font-weight: 600; line-height: 18px;
+    color: #fff; background: var(--noc-co); box-shadow: 0 2px 6px rgba(0, 0, 0, .15);
+}
+.noc-crown .noc-ic { width: 11px; height: 11px; }
+.noc-f-center .noc-card.noc-top { width: 260px; }
+
+/* head: normal card, crown badge only */
+.noc-card.noc-top {
+    width: var(--noc-card-w); padding-top: 8px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 4px 14px rgba(0, 0, 0, .05);
+}
+.noc-card.noc-top .noc-avatar { width: 32px; height: 32px; font-size: 11px; }
+.noc-card.noc-top .noc-name { font-size: 12.5px; }
+.noc-f-center .noc-card.noc-top { width: 240px; padding-top: 12px; }
+.noc-f-center .noc-card.noc-top .noc-avatar { width: 40px; height: 40px; font-size: 13px; }
+.noc-f-center .noc-card.noc-top .noc-name { font-size: 13.5px; }
+.noc-crown { background: #BA7517; }
+.noc-crown .noc-ic { width: 12px; height: 12px; }
+
+/* head badge: small chip inside the card, top corner */
+.noc-crown {
+    top: 7px; left: auto; inset-inline-end: 7px; transform: none;
+    padding: 0 7px; font-size: 10px; line-height: 17px; gap: 3px;
+    box-shadow: none;
+}
+.noc-crown .noc-ic { width: 11px; height: 11px; }
+.noc-card.noc-top .noc-card-head { padding-inline-end: 50px; }
+
+/* head: gold crown before the name */
+.noc-crown-ic { display: inline-flex; vertical-align: -2px; margin-inline-end: 4px; color: #BA7517; }
+.noc-crown-ic .noc-ic { width: 13px; height: 13px; }
+.noc-card.noc-top .noc-card-head { padding-inline-end: 0; }
+
+/* keep the employee code whole next to the team chip */
+.noc-bottom .noc-code { flex-shrink: 0; overflow: visible; }
+
+/* managers: small briefcase before the name, in the company color */
+.noc-mgr-ic { display: inline-flex; vertical-align: -2px; margin-inline-end: 4px; color: var(--noc-co); }
+.noc-mgr-ic .noc-ic { width: 12px; height: 12px; }
+
+/* long names wrap to two lines on the card instead of being cut */
+.noc-card .noc-name {
+    white-space: normal; overflow: hidden; overflow-wrap: anywhere; line-height: 1.3;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+}
+.noc-card .noc-card-head { align-items: flex-start; }
+.noc-card .noc-avatar, .noc-card .noc-dept-icon { margin-top: 1px; }
+
+/* back to one line on the card */
+.noc-card .noc-name {
+    display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    -webkit-line-clamp: unset; line-height: 1.35;
+}
+.noc-card .noc-card-head { align-items: center; }
+.noc-card .noc-avatar, .noc-card .noc-dept-icon { margin-top: 0; }
+
+/* ---------- smart grid: many reports in an even grid, drill-down below ---------- */
+.noc-grid-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    position: relative; padding-top: var(--noc-gap);
+}
+.noc-grid-wrap::before {
+    content: ""; position: absolute; top: 0; inset-inline-start: 50%;
+    height: var(--noc-gap); border-inline-start: var(--noc-w) solid var(--noc-line);
+}
+.noc-children.noc-grid-level {
+    display: grid; grid-template-columns: repeat(var(--noc-cols, 5), var(--noc-card-w));
+    gap: 12px; padding: 14px !important;
+    border: 1px dashed var(--border-color); border-radius: 16px;
+    background: color-mix(in srgb, var(--card-bg) 55%, transparent);
+}
+.noc-children.noc-grid-level::before { display: none; }
+.noc-grid-level > .noc-node { padding: 0; }
+.noc-grid-level > .noc-node::before,
+.noc-grid-level > .noc-node::after { display: none !important; }
+.noc-card.noc-drilled {
+    border-color: var(--noc-co);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--noc-co) 20%, transparent);
+}
+.noc-drill { display: flex; flex-direction: column; align-items: center; position: relative; padding-top: 26px; }
+.noc-drill::before {
+    content: ""; position: absolute; top: 0; inset-inline-start: 50%;
+    height: 26px; border-inline-start: var(--noc-w) dashed var(--noc-line);
+}
+.noc-drill-label {
+    display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px; border-radius: 999px;
+    font-size: var(--text-xs); font-weight: 600; color: var(--text-color);
+    background: var(--card-bg); border: 1px solid var(--border-color);
+}
+.noc-drill-label .noc-ic { width: 12px; height: 12px; }
+
+/* ---------- drill: manager card moves below the grid ---------- */
+.noc-card.noc-moved { opacity: .35; border-style: dashed; box-shadow: none; }
+.noc-card.noc-moved:hover { opacity: .6; }
+.noc-drill > .noc-drill-root { gap: 0; }
+.noc-card.noc-drill-head {
+    border-color: var(--noc-co);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--noc-co) 18%, transparent), 0 6px 18px rgba(0, 0, 0, .06);
+}
+
+/* several drilled managers side by side under their grid */
+.noc-drills { display: flex; justify-content: center; align-items: flex-start; gap: 48px; }
+.noc-drills > .noc-drill { flex-shrink: 0; }
+
+/* ---------- collapse / level stepper / expand ---------- */
+.noc-lv { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 8px; background: var(--subtle-fg); }
+.noc-lv button {
+    display: inline-flex; align-items: center; gap: 4px;
+    border: 0; background: transparent; border-radius: 6px; padding: 3px 8px;
+    font-size: var(--text-sm); color: var(--text-muted); cursor: pointer;
+}
+.noc-lv button:hover:not(:disabled) { background: var(--card-bg); color: var(--text-color); }
+.noc-lv button:disabled { opacity: .35; cursor: default; }
+.noc-lv .noc-ic { width: 13px; height: 13px; }
+.noc-lv-step {
+    display: inline-flex; align-items: center; margin: 0 2px;
+    background: var(--card-bg); border-radius: 6px; box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+}
+.noc-lv-step button { padding: 2px 9px; font-size: 15px; line-height: 1; color: var(--text-color); }
+.noc-lv-val {
+    min-width: 72px; text-align: center; font-size: var(--text-xs); font-weight: 600;
+    color: var(--text-color); font-variant-numeric: tabular-nums;
+}
+
+/* ---------- neutral gray cards; company shown by a small dot ---------- */
+.noc-stage .noc-card.noc-dept { --noc-co: var(--gray-500) !important; }
+.noc-co-dot {
+    position: absolute; top: 8px; inset-inline-end: 8px; z-index: 1;
+    width: 8px; height: 8px; border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--card-bg);
+}
+.noc-card .noc-card-head { padding-inline-end: 10px; }
+.noc-dept .noc-co-dot, .noc-vac .noc-co-dot { top: auto; bottom: 8px; }
+
+/* company dot on department cards only; employees keep their company colors */
+.noc-card:not(.noc-dept) .noc-co-dot { display: none; }
+
+/* ---------- toolbar polish: one height, one font size, one look ---------- */
+.noc-toolbar {
+    gap: 10px; padding: 6px; margin-bottom: 10px;
+    border: 1px solid var(--border-color); border-radius: 12px; background: var(--card-bg);
+}
+.noc-toolbar button { font-size: 12.5px !important; line-height: 1; }
+.noc-toolbar button:focus { outline: none; box-shadow: none; }
+.noc-toolbar button:focus-visible { outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent); outline-offset: 1px; }
+
+.noc-seg, .noc-lv { height: 32px; padding: 2px; border-radius: 9px; background: var(--subtle-fg); align-items: center; }
+.noc-seg button { height: 28px; padding: 0 12px; border-radius: 7px; }
+
+.noc-tools { gap: 6px; }
+.noc-tools > .btn,
+.noc-tools > .btn-group > .btn {
+    height: 32px; padding: 0 12px; border-radius: 9px; gap: 6px;
+    border: 1px solid transparent; background: var(--subtle-fg);
+    color: var(--text-color); box-shadow: none;
+}
+.noc-tools > .btn:hover,
+.noc-tools > .btn-group > .btn:hover { background: color-mix(in srgb, var(--subtle-fg) 80%, var(--text-muted) 20%); }
+.noc-tools .btn.active {
+    color: var(--primary); border-color: color-mix(in srgb, var(--primary) 40%, transparent);
+    background: color-mix(in srgb, var(--primary) 10%, var(--card-bg));
+}
+.noc-tools .noc-ic { width: 14px; height: 14px; }
+
+.noc-lv button { height: 28px; padding: 0 9px; }
+.noc-lv-step { height: 28px; }
+.noc-lv-step button { padding: 0 10px; font-size: 15px !important; }
+.noc-lv-val { min-width: 76px; font-size: 12px; }
+.noc-sep { height: 20px; }
+.noc-wrap { height: calc(100vh - 245px); }
+
+/* toolbar: compact, centered, hugging its content */
+.noc-toolbar {
+    width: fit-content; max-width: 100%;
+    margin-inline: auto; justify-content: center;
+}
+.noc-tools { margin-inline-start: 0; }
+
+/* ---------- top row: legend left, toolbar right ---------- */
+.noc-topbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.noc-topbar .noc-legend {
+    position: static; max-width: none; z-index: auto;
+    padding: 0; background: transparent; box-shadow: none;
+    font-size: 12.5px;
+}
+.noc-topbar .noc-toolbar { width: auto; margin: 0; margin-inline-start: auto; }
+
+/* breathing room on both sides of the top row */
+.noc-topbar { padding-inline: 16px; }
+
+/* ---------- fixed toolbar + options menu ---------- */
+.noc-menu { min-width: 200px; padding: 6px; }
+.noc-menu .dropdown-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px; border-radius: 6px; font-size: 12.5px;
+}
+.noc-menu .dropdown-item.disabled { opacity: .4; pointer-events: none; }
+.noc-check { display: inline-flex; width: 14px; visibility: hidden; color: var(--primary); }
+.noc-check .noc-ic { width: 14px; height: 14px; }
+.noc-opt.active .noc-check { visibility: visible; }
+.noc-opt-btn.active { color: var(--primary); }
+.noc-seg button:disabled { opacity: .4; cursor: default; }
+.noc-lv.is-disabled { opacity: .45; }
+
+/* many top-level nodes (flat departments) wrap into rows instead of one endless row */
+.noc-root { flex-wrap: wrap; row-gap: 40px; }
+
+/* departments: company shown only as colored dots under the name */
+.noc-dept .noc-co-dot { display: none; }
+
+/* ---------- department cards: room for the full name ---------- */
+.noc-dept-view { --noc-card-w: 236px; }
+.noc-card.noc-dept .noc-card-head { padding-inline-end: 0; }
+.noc-card.noc-dept .noc-card-foot { top: auto; bottom: 8px; }
+
+/* ---------- Full Chart: big teams wrap into rows ---------- */
+.noc-children.noc-wrap-level {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start;
+    gap: 28px 16px; padding: 16px !important;
+    max-width: calc(6 * var(--noc-card-w) + 5 * 16px + 34px);
+    border: 1px dashed var(--border-color); border-radius: 16px;
+    background: color-mix(in srgb, var(--card-bg) 55%, transparent);
+}
+.noc-children.noc-wrap-level::before { display: none; }
+.noc-wrap-level > .noc-node { padding: 0; }
+.noc-wrap-level > .noc-node::before,
+.noc-wrap-level > .noc-node::after { display: none !important; }
+
+/* compact stacks: tighter gap between stacked team members */
+.noc-children.noc-leaf-grid { row-gap: 8px; }
