@@ -273,3 +273,4 @@ app_license = "mit"
 # ignore_translatable_strings_from = []
 
 required_apps = ["erpnext"]
+after_migrate = ["nexlify_hr.sidebar_setup.ensure_hr_org_chart"]
