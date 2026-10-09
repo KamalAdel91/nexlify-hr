@@ -823,3 +823,76 @@
 /* keep the toolbar menus above the chart (the glass blur creates its own layer) */
 .noc-topbar { position: relative; z-index: 20; }
 .noc-toolbar .dropdown-menu { z-index: 30; }
+
+/* ===== WOW FEATURES ===== */
+
+/* 1. path highlight */
+.noc-stage .noc-card { transition: opacity .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.noc-stage.noc-pathing .noc-card:not(.noc-on-path) { opacity: .45; }
+.noc-stage.noc-pathing .noc-card.noc-on-path {
+    border-color: color-mix(in srgb, var(--noc-path) 55%, var(--border-color));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--noc-path) 16%, transparent), 0 12px 26px -12px rgba(16, 24, 40, .28);
+}
+.noc-stage .noc-pl::before, .noc-stage .noc-pl::after,
+.noc-stage .noc-pu::before { border-color: var(--noc-path) !important; }
+
+/* 2. search spotlight */
+.noc-stage.noc-spotlight .noc-card:not(.noc-spot) { opacity: .28; }
+.noc-stage .noc-card.noc-spot { z-index: 3; animation: noc-pulse .85s ease-out 2; }
+@keyframes noc-pulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 55%, transparent); }
+    100% { box-shadow: 0 0 0 18px color-mix(in srgb, var(--primary) 0%, transparent); }
+}
+
+/* 3. minimap */
+.noc-minimap {
+    position: absolute; bottom: 12px; inset-inline-start: 12px; z-index: 3;
+    padding: 6px; border-radius: 12px; cursor: crosshair;
+    background: color-mix(in srgb, var(--card-bg) 85%, transparent);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 0 1px var(--border-color), 0 10px 24px -10px rgba(16, 24, 40, .3);
+}
+.noc-minimap canvas { display: block; border-radius: 6px; }
+.noc-mini-view {
+    position: absolute; margin: 6px; pointer-events: none; border-radius: 4px;
+    border: 1.5px solid var(--primary);
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+/* 4. status badges */
+.noc-badges { display: inline-flex; gap: 3px; margin-inline-end: auto; margin-inline-start: 6px; }
+.noc-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 17px; height: 17px; border-radius: 50%;
+}
+.noc-badge .noc-ic { width: 10px; height: 10px; }
+.noc-b-new { color: #0F6E56; background: color-mix(in srgb, #1D9E75 18%, var(--card-bg)); }
+.noc-b-leave { color: #854F0B; background: color-mix(in srgb, #EF9F27 22%, var(--card-bg)); }
+.noc-b-anniv { color: #993556; background: color-mix(in srgb, #D4537E 18%, var(--card-bg)); }
+
+/* 5. KPI bar */
+.noc-kpi-bar {
+    position: absolute; top: 12px; inset-inline-start: 12px; z-index: 3;
+    display: flex; flex-wrap: wrap; gap: 6px; max-width: calc(100% - 24px);
+}
+.noc-kpi-bar:empty { display: none; }
+.noc-kpi {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px;
+    font-size: 12px; color: var(--text-muted);
+    background: color-mix(in srgb, var(--card-bg) 85%, transparent);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--border-color) 85%, transparent), 0 4px 12px -6px rgba(16, 24, 40, .18);
+}
+.noc-kpi b { color: var(--text-color); font-weight: 650; font-variant-numeric: tabular-nums; }
+.noc-kpi .noc-ic { width: 13px; height: 13px; color: var(--primary); }
+.noc-editing .noc-kpi-bar { top: 46px; }
+
+/* 6. branded export header (only exists during export) */
+.noc-export-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 4px 4px 22px; margin-bottom: 30px; border-bottom: 2px solid var(--border-color);
+}
+.noc-export-head img { height: 42px; width: auto; }
+.noc-export-title { font-size: 20px; font-weight: 700; color: var(--text-color); letter-spacing: -.01em; }
+.noc-export-meta { margin-top: 2px; font-size: 12.5px; color: var(--text-muted); }
+.noc-exporting .noc-pathing .noc-card, .noc-exporting .noc-spotlight .noc-card { opacity: 1 !important; }

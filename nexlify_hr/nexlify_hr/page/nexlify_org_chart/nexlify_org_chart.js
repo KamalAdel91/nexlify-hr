@@ -27,6 +27,9 @@ const NOC_ICONS = {
     crown: '<path d="M11.56 3.27a.5.5 0 0 1 .88 0l2.95 5.6a1 1 0 0 0 1.52.29l4.28-3.66a.5.5 0 0 1 .82.5l-2.83 10.25a1 1 0 0 1-.96.73H5.79a1 1 0 0 1-.97-.73L2 5.99a.5.5 0 0 1 .81-.5l4.28 3.67a1 1 0 0 0 1.52-.3z"/><path d="M5 21h14"/>',
     check: '<path d="M20 6 9 17l-5-5"/>',
     sliders: '<path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/>',
+    plane: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+    sparkle: '<path d="M12 3l1.9 5.8a2 2 0 0 0 1.3 1.3L21 12l-5.8 1.9a2 2 0 0 0-1.3 1.3L12 21l-1.9-5.8a2 2 0 0 0-1.3-1.3L3 12l5.8-1.9a2 2 0 0 0 1.3-1.3z"/>',
+    cake: '<path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3M12 8v3M17 8v3"/>',
     whatsapp: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
     teams: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
     swap: '<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>',
@@ -184,6 +187,7 @@ class NexlifyOrgChart {
                     <button class="btn btn-default btn-xs" data-z="fit" title="${__("Fit to screen")}">⤢</button>
                 </div>
                 <div class="noc-canvas"><div class="noc-stage"></div></div>
+                <div class="noc-kpi-bar"></div>
                 <div class="noc-hover"></div>
             </div>`).appendTo(this.page.main);
 
@@ -194,6 +198,7 @@ class NexlifyOrgChart {
         this.$canvas = this.$wrap.find(".noc-canvas");
         this.$stage = this.$wrap.find(".noc-stage");
         this.$hover = this.$wrap.find(".noc-hover");
+        this.$kpi = this.$wrap.find(".noc-kpi-bar");
         this.$wrap.toggleClass("noc-h", this.mode === "full" && this.layout === "horizontal");
         this.$wrap.toggleClass("noc-focus-mode", this.mode === "focus");
 
@@ -268,6 +273,8 @@ class NexlifyOrgChart {
             this._ht = setTimeout(() => this.show_hover(id, el), 200);
         });
         this.$stage.on("mouseleave", ".noc-card", () => this.schedule_hide());
+        this.$stage.on("mouseenter", ".noc-card", (e) => this.light_path(e.currentTarget.getAttribute("data-id")));
+        this.$stage.on("mouseleave", ".noc-card", () => this.clear_path());
 
         this.$hover.on("mouseenter", () => clearTimeout(this._hide_t));
         this.$hover.on("mouseleave", () => this.schedule_hide());
@@ -290,6 +297,7 @@ class NexlifyOrgChart {
 
         this.$stage.on("click", ".noc-f-top", () => this.set_focus(null));
         $(window).on("resize", frappe.utils.debounce(() => this.mode !== "focus" && this.render(), 300));
+        this.setup_minimap();
         this.setup_dnd();
     }
 
@@ -390,6 +398,7 @@ class NexlifyOrgChart {
                     e.reports_to = r.message || null;
                     if (tgt) this.expanded.add(tgt);
                     this.build();
+                    this.render_stats();
                     this.reveal(src);
                     frappe.show_alert({ message: __("Manager updated"), indicator: "green" });
                 },
@@ -405,6 +414,7 @@ class NexlifyOrgChart {
         this.departments = (data.departments || []).filter((d) => d.name !== "All Departments");
         this.vacancies = data.vacancies || [];
         this.company_index = data.company_index || {};
+        this.on_leave = new Set(data.on_leave || []);
         this.by_id = {};
         this.dept_by = {};
         this.vac_by = {};
@@ -417,6 +427,7 @@ class NexlifyOrgChart {
         this.level = this.view === "department" ? 0 : 1;
         this.drill = {};
         this.render_legend();
+        this.render_stats();
         this.render();
     }
 
@@ -769,11 +780,15 @@ class NexlifyOrgChart {
 
     render() {
         this.hide_hover();
+        this.clear_path();
         if (!this.roots.length) {
             this.$stage.html(`<div class="text-muted">${__("No active employees found")}</div>`);
             return;
         }
-        if (this.mode === "focus") return this.render_focus();
+        if (this.mode === "focus") {
+            this.render_focus();
+            return this.draw_minimap();
+        }
         if (!this._in_fit) {
             this._in_fit = true;
             this._compact = false;
@@ -783,6 +798,7 @@ class NexlifyOrgChart {
                 this.render();
             }
             this._in_fit = false;
+            this.draw_minimap();
             return;
         }
         // real trees on top; employees with no manager and no team go to a compact grid below
@@ -910,7 +926,7 @@ class NexlifyOrgChart {
                             : direct ? `<span class="noc-mgr-ic" title="${__("Manager")}">${noc_icon("briefcase")}</span>` : ""}${esc(this.short_name(e.employee_name))}</div>
                         ${e.designation ? `<div class="noc-sub">${esc(e.designation)}</div>` : ""}
                         <div class="noc-bottom">
-                            <span class="noc-code">${esc(id)}</span>
+                            <span class="noc-code">${esc(id)}</span>${this.badges(e)}
                             ${total ? `<span class="noc-team" title="${__("Direct reports / Total team")}">${noc_icon("users")}${direct} / ${total}</span>` : ""}
                         </div>
                     </div>
@@ -1009,12 +1025,14 @@ class NexlifyOrgChart {
             return;
         }
         this.reveal(hit.name);
+        this.spotlight(hit.name);
     }
 
     set_scale(s) {
         this.scale = Math.min(2, Math.max(0.3, Math.round(s * 10) / 10));
         this.$stage.css("zoom", this.scale);
         this.$wrap.find('[data-z="reset"]').text(Math.round(this.scale * 100) + "%");
+        this.draw_minimap();
     }
 
     // ---------- export ----------
@@ -1028,6 +1046,7 @@ class NexlifyOrgChart {
         this.hide_hover();
         this.set_scale(1);
         this.$wrap.addClass("noc-exporting");
+        const $head = $(this.export_head()).prependTo(this.$stage);
         try {
             await frappe.require(libs);
             const el = this.$stage[0];
@@ -1052,9 +1071,161 @@ class NexlifyOrgChart {
             console.error(err);
             frappe.msgprint(__("Export failed. Check the browser console for details."));
         } finally {
+            $head.remove();
             this.$wrap.removeClass("noc-exporting");
             this.set_scale(prev);
         }
+    }
+
+    // ---------- path highlight ----------
+    light_path(id) {
+        if (this._drag || !id || !this.card_el(id)) return;
+        this.clear_path();
+        const co = getComputedStyle(this.card_el(id)).getPropertyValue("--noc-co").trim();
+        this.$stage[0].style.setProperty("--noc-path", co || "var(--primary)");
+        let x = id;
+        while (x) {
+            const $c = this.$stage.find(`.noc-card[data-id="${CSS.escape(x)}"]`).addClass("noc-on-path");
+            if (this.parent[x]) {
+                const $li = $c.closest(".noc-node").addClass("noc-pl");
+                $li.parent().addClass("noc-pu");
+            }
+            x = this.parent[x];
+        }
+        this.$stage.addClass("noc-pathing");
+    }
+
+    clear_path() {
+        if (!this.$stage) return;
+        this.$stage.removeClass("noc-pathing")
+            .find(".noc-on-path, .noc-pl, .noc-pu").removeClass("noc-on-path noc-pl noc-pu");
+    }
+
+    // ---------- search spotlight ----------
+    spotlight(id) {
+        const el = this.card_el(id);
+        if (!el) return;
+        clearTimeout(this._spot_t);
+        this.$stage.find(".noc-spot").removeClass("noc-spot");
+        this.$stage.addClass("noc-spotlight");
+        $(el).addClass("noc-spot");
+        this._spot_t = setTimeout(() => {
+            this.$stage.removeClass("noc-spotlight").find(".noc-spot").removeClass("noc-spot");
+        }, 1900);
+    }
+
+    // ---------- status badges: on leave / new joiner / work anniversary ----------
+    badges(e) {
+        const out = [];
+        const today = moment().startOf("day");
+        if (this.on_leave && this.on_leave.has(e.name)) out.push(["leave", "plane", __("On leave today")]);
+        if (e.date_of_joining) {
+            const j = moment(e.date_of_joining);
+            const since = today.diff(j, "days");
+            if (since >= 0 && since <= 90) out.push(["new", "sparkle", __("New joiner · {0} days", [since])]);
+            const next = j.clone().year(today.year());
+            if (next.isBefore(today)) next.add(1, "year");
+            const yrs = next.diff(j, "years");
+            if (yrs >= 1 && next.diff(today, "days") <= 7) {
+                out.push(["anniv", "cake", __("{0} years on {1}", [yrs, next.format("D MMM")])]);
+            }
+        }
+        return out.length
+            ? `<span class="noc-badges">${out.map(([k, i, t]) => `<span class="noc-badge noc-b-${k}" title="${esc(t)}">${noc_icon(i)}</span>`).join("")}</span>`
+            : "";
+    }
+
+    // ---------- KPI bar ----------
+    render_stats() {
+        if (!this.$kpi) return;
+        const teams = Object.values(this.reports || {}).filter((r) => r.length);
+        const mgrs = teams.length;
+        const span = mgrs ? teams.reduce((n, r) => n + r.length, 0) / mgrs : 0;
+        const vac = (this.vacancies || []).reduce((n, v) => n + (cint(v.planned_vacancies) || 1), 0);
+        const leave = this.on_leave ? this.on_leave.size : 0;
+        const item = (icon, val, label) => `<span class="noc-kpi">${noc_icon(icon)}<b>${val}</b><span>${label}</span></span>`;
+        this.$kpi.html([
+            item("users", this.employees.length, __("Employees")),
+            item("briefcase", mgrs, __("Managers")),
+            item("hash", span ? span.toFixed(1) : "0", __("Avg team")),
+            vac ? item("award", vac, __("Open positions")) : "",
+            leave ? item("plane", leave, __("On leave")) : "",
+        ].join(""));
+    }
+
+    // ---------- minimap ----------
+    setup_minimap() {
+        this.$mini = $(`<div class="noc-minimap" title="${__("Drag to navigate")}"><canvas></canvas><div class="noc-mini-view"></div></div>`)
+            .appendTo(this.$wrap).hide();
+        this.$canvas.on("scroll", () => this.update_minimap_view());
+        this.$mini.on("mousedown", (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            const go = (e2) => {
+                const r = this.$mini.find("canvas")[0].getBoundingClientRect();
+                const c = this.$canvas[0], k = this._mini_k || 1;
+                c.scrollLeft = (e2.clientX - r.left) / k - c.clientWidth / 2;
+                c.scrollTop = (e2.clientY - r.top) / k - c.clientHeight / 2;
+            };
+            go(ev);
+            $(document).on("mousemove.nocmini", go).one("mouseup", () => $(document).off("mousemove.nocmini"));
+        });
+    }
+
+    draw_minimap() {
+        if (!this.$mini) return;
+        const c = this.$canvas[0];
+        const W = c.scrollWidth, H = c.scrollHeight;
+        const show = this.mode !== "focus" && (W > c.clientWidth + 4 || H > c.clientHeight + 4);
+        this.$mini.toggle(show);
+        if (!show) return;
+        const k = Math.min(190 / W, 120 / H);
+        this._mini_k = k;
+        const cw = Math.max(40, Math.round(W * k)), ch = Math.max(30, Math.round(H * k));
+        const cv = this.$mini.find("canvas")[0];
+        const dpr = window.devicePixelRatio || 1;
+        cv.width = cw * dpr;
+        cv.height = ch * dpr;
+        cv.style.width = cw + "px";
+        cv.style.height = ch + "px";
+        const g = cv.getContext("2d");
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        g.clearRect(0, 0, cw, ch);
+        const base = c.getBoundingClientRect();
+        this.$stage.find(".noc-card").each((_, el) => {
+            const r = el.getBoundingClientRect();
+            g.globalAlpha = el.classList.contains("noc-moved") ? 0.25 : 0.8;
+            g.fillStyle = getComputedStyle(el).getPropertyValue("--noc-co").trim() || "#9ca3af";
+            g.fillRect((r.left - base.left + c.scrollLeft) * k, (r.top - base.top + c.scrollTop) * k,
+                Math.max(2, r.width * k), Math.max(2, r.height * k));
+        });
+        this.update_minimap_view();
+    }
+
+    update_minimap_view() {
+        if (!this.$mini || !this.$mini.is(":visible")) return;
+        const c = this.$canvas[0], k = this._mini_k || 1;
+        this.$mini.find(".noc-mini-view").css({
+            left: c.scrollLeft * k, top: c.scrollTop * k,
+            width: c.clientWidth * k, height: c.clientHeight * k,
+        });
+    }
+
+    // ---------- branded export header ----------
+    export_head() {
+        const logo = frappe.boot.app_logo_url || "";
+        const co = this.company.get_value() || __("All Companies");
+        const view = this.view === "employee" ? __("Employees") : __("Departments");
+        const meta = [co, view, __("{0} employees", [this.employees.length]),
+            frappe.datetime.str_to_user(frappe.datetime.get_today())].join("  ·  ");
+        return `
+            <div class="noc-export-head">
+                ${logo ? `<img src="${encodeURI(logo)}" alt="">` : ""}
+                <div>
+                    <div class="noc-export-title">${__("Organization Chart")}</div>
+                    <div class="noc-export-meta">${esc(meta)}</div>
+                </div>
+            </div>`;
     }
 
     // ---------- contact: WhatsApp + Teams ----------

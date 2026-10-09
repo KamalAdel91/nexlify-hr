@@ -57,6 +57,22 @@ def get_org_data(company=None):
             limit_page_length=0,
         )
 
+    # employees on approved leave today (only ids already visible in this chart)
+    on_leave = []
+    if employees and frappe.db.exists("DocType", "Leave Application"):
+        today = frappe.utils.today()
+        on_leave = frappe.get_all(
+            "Leave Application",
+            filters={
+                "employee": ["in", [e.name for e in employees]],
+                "docstatus": 1,
+                "status": "Approved",
+                "from_date": ["<=", today],
+                "to_date": [">=", today],
+            },
+            pluck="employee",
+        )
+
     # Stable color slot per company (creation order), only for companies the user can already see
     present = {e.company for e in employees} | {d.get("company") for d in departments if d.get("company")}
     order = frappe.get_all("Company", pluck="name", order_by="creation asc")
@@ -67,6 +83,7 @@ def get_org_data(company=None):
         "departments": departments,
         "vacancies": vacancies,
         "company_index": company_index,
+        "on_leave": sorted(set(on_leave)),
     }
 
 
