@@ -664,3 +664,16 @@
 
 /* compact stacks: tighter gap between stacked team members */
 .noc-children.noc-leaf-grid { row-gap: 8px; }
+
+/* ---------- WhatsApp / Teams buttons ---------- */
+.noc-contacts { display: flex; gap: 8px; margin-top: 12px; }
+.noc-contact {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    text-decoration: none !important; transition: filter .15s;
+}
+.noc-contact:hover { filter: brightness(.94); }
+.noc-contact .noc-ic { width: 14px; height: 14px; }
+.noc-wa { color: #128C7E !important; background: color-mix(in srgb, #25D366 15%, var(--card-bg)); }
+.noc-teams { color: #5B5FC7 !important; background: color-mix(in srgb, #5B5FC7 15%, var(--card-bg)); }
+.noc-profile .noc-contacts { margin: 0 4px 20px; }

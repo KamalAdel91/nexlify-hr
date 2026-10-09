@@ -27,6 +27,8 @@ const NOC_ICONS = {
     crown: '<path d="M11.56 3.27a.5.5 0 0 1 .88 0l2.95 5.6a1 1 0 0 0 1.52.29l4.28-3.66a.5.5 0 0 1 .82.5l-2.83 10.25a1 1 0 0 1-.96.73H5.79a1 1 0 0 1-.97-.73L2 5.99a.5.5 0 0 1 .81-.5l4.28 3.67a1 1 0 0 0 1.52-.3z"/><path d="M5 21h14"/>',
     check: '<path d="M20 6 9 17l-5-5"/>',
     sliders: '<path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/>',
+    whatsapp: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+    teams: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
     swap: '<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>',
     chevrons_up: '<path d="m17 11-5-5-5 5"/><path d="m17 18-5-5-5 5"/>',
     chevrons_down: '<path d="m7 6 5 5 5-5"/><path d="m7 13 5 5 5-5"/>',
@@ -1055,6 +1057,45 @@ class NexlifyOrgChart {
         }
     }
 
+    // ---------- contact: WhatsApp + Teams ----------
+    async load_contact(id) {
+        this._contact ||= {};
+        if (id in this._contact) return this._contact[id];
+        try {
+            const r = await frappe.call({ method: NOC_API + "get_employee_card", args: { employee: id } });
+            this._contact[id] = r.message || null;
+        } catch (err) {
+            this._contact[id] = null;
+        }
+        return this._contact[id];
+    }
+
+    // local numbers: 05xxxxxxxx -> Saudi (966), 01xxxxxxxxx -> Egypt (20); +/00 numbers kept as is
+    wa_number(n) {
+        if (!n) return "";
+        let s = String(n).trim();
+        const intl = s.startsWith("+") || s.startsWith("00");
+        s = s.replace(/\D/g, "");
+        if (s.startsWith("00")) s = s.slice(2);
+        if (!intl) {
+            if (/^05\d{8}$/.test(s)) s = "966" + s.slice(1);
+            else if (/^01\d{9}$/.test(s)) s = "20" + s.slice(1);
+        }
+        return s.length >= 8 ? s : "";
+    }
+
+    contact_actions(d) {
+        const btns = [];
+        const wa = this.wa_number(d.cell_number);
+        if (wa) {
+            btns.push(`<a class="noc-contact noc-wa" href="https://wa.me/${wa}" target="_blank" rel="noopener">${noc_icon("whatsapp")}${__("WhatsApp")}</a>`);
+        }
+        if (d.company_email) {
+            btns.push(`<a class="noc-contact noc-teams" href="https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(d.company_email)}" target="_blank" rel="noopener">${noc_icon("teams")}${__("Teams")}</a>`);
+        }
+        return btns.length ? `<div class="noc-contacts">${btns.join("")}</div>` : "";
+    }
+
     // ---------- hover card ----------
     show_hover(id, el) {
         const e = this.by_id[id];
@@ -1062,6 +1103,11 @@ class NexlifyOrgChart {
         clearTimeout(this._hide_t);
         this._hover_id = id;
         this.$hover.html(this.hover_html(e)).addClass("open");
+        this.load_contact(id).then((c) => {
+            if (this._hover_id !== id || !c) return;
+            const html = this.contact_actions(c);
+            if (html) this.$hover.find(".noc-hover-actions").before(html);
+        });
         const wr = this.$wrap[0].getBoundingClientRect();
         const cr = el.getBoundingClientRect();
         const w = this.$hover.outerWidth();
@@ -1217,6 +1263,7 @@ class NexlifyOrgChart {
                         </div>
                     </div>
                 </div>
+                ${this.contact_actions(d)}
                 <div class="noc-kpis">
                     <div><b>${kids.length}</b><span>${__("Direct Reports")}</span></div>
                     <div><b>${this.team(d.name)}</b><span>${__("Total Team")}</span></div>
