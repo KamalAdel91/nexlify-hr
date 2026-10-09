@@ -896,3 +896,21 @@
 .noc-export-title { font-size: 20px; font-weight: 700; color: var(--text-color); letter-spacing: -.01em; }
 .noc-export-meta { margin-top: 2px; font-size: 12.5px; color: var(--text-muted); }
 .noc-exporting .noc-pathing .noc-card, .noc-exporting .noc-spotlight .noc-card { opacity: 1 !important; }
+
+/* drilled managers: one dashed bus joins them, one stem goes up to their grid */
+.noc-drills { position: relative; gap: 0; padding-top: 22px; }
+.noc-drills::before {
+    content: ""; position: absolute; top: 0; inset-inline-start: 50%;
+    height: 22px; border-inline-start: var(--noc-w) dashed var(--noc-line);
+}
+.noc-drills > .noc-drill { padding-inline: 24px; }
+.noc-drills > .noc-drill::after {
+    content: ""; position: absolute; top: 0; inset-inline: 0;
+    border-top: var(--noc-w) dashed var(--noc-line);
+}
+.noc-drills > .noc-drill:first-child::after { inset-inline-start: 50%; }
+.noc-drills > .noc-drill:last-child::after { inset-inline-end: 50%; }
+.noc-drills > .noc-drill:only-child::after { display: none; }
+
+/* export: drop the faded placeholders of managers that moved below their grid */
+.noc-exporting .noc-grid-level > .noc-node:has(> .noc-card.noc-moved) { display: none; }

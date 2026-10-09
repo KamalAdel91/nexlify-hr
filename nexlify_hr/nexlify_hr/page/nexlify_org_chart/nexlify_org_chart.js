@@ -205,13 +205,15 @@ class NexlifyOrgChart {
         this.$wrap.on("click", "[data-z]", (e) => {
             const z = $(e.currentTarget).data("z");
             if (z === "fit") return this.fit();
-            this.set_scale(z === "in" ? this.scale + 0.1 : z === "out" ? this.scale - 0.1 : 1);
+            const r = this.$canvas[0].getBoundingClientRect();
+            this.zoom_at(z === "in" ? this.scale + 0.1 : z === "out" ? this.scale - 0.1 : 1,
+                r.left + r.width / 2, r.top + r.height / 2);
         });
 
         this.$canvas[0].addEventListener("wheel", (e) => {
             if (!e.ctrlKey) return;
             e.preventDefault();
-            this.set_scale(this.scale + (e.deltaY < 0 ? 0.1 : -0.1));
+            this.zoom_at(this.scale + (e.deltaY < 0 ? 0.1 : -0.1), e.clientX, e.clientY);
         }, { passive: false });
 
         // drag to pan
@@ -557,10 +559,16 @@ class NexlifyOrgChart {
         if (level === 0) this.drill = {};
         this.expanded = new Set();
         const max = level === "all" ? Infinity : cint(level);
+        this.drill = {};
         const walk = (id, depth) => {
             const kids = this.children[id] || [];
             if (!kids.length || depth >= max) return;
             this.expanded.add(id);
+            // Smart grids: open every manager in the grid that is still within the requested level
+            if (this.is_grid(id)) {
+                const open = kids.filter((k) => (this.children[k] || []).length && depth + 1 < max);
+                if (open.length) this.drill[id] = open;
+            }
             kids.forEach((k) => walk(k, depth + 1));
         };
         this.roots.forEach((r) => walk(r, 0));
@@ -1026,6 +1034,19 @@ class NexlifyOrgChart {
         }
         this.reveal(hit.name);
         this.spotlight(hit.name);
+    }
+
+    // keep the point under (cx, cy) fixed on screen while zooming
+    zoom_at(s, cx, cy) {
+        const c = this.$canvas[0];
+        const r = c.getBoundingClientRect();
+        const mx = cx - r.left, my = cy - r.top;
+        const old = this.scale;
+        const px = (c.scrollLeft + mx) / old, py = (c.scrollTop + my) / old;
+        this.set_scale(s);
+        if (this.scale === old) return;
+        c.scrollLeft = px * this.scale - mx;
+        c.scrollTop = py * this.scale - my;
     }
 
     set_scale(s) {
