@@ -10,7 +10,7 @@ frappe.pages["nexlify-org-chart"].on_page_load = function (wrapper) {
 const NOC_API = "nexlify_hr.nexlify_hr.page.nexlify_org_chart.nexlify_org_chart.";
 const NOC_LIB = "/assets/nexlify_hr/js/lib/";
 const NOC_NO_DEPT = "d:__none";
-const NOC_GRID_AT = 6; // more direct reports than this -> grid + drill-down (vertical full chart)
+const NOC_GRID_AT = 6; // Smart mode: more direct reports than this -> grid + drill-down
 const NOC_BLANK = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 const NOC_COLORS = ["#1D9E75", "#7F77DD", "#D85A30", "#378ADD", "#D4537E", "#BA7517", "#639922", "#888780"];
 const NOC_ICONS = {
@@ -92,8 +92,13 @@ class NexlifyOrgChart {
         this.search = this.page.add_field({
             fieldtype: "Data",
             fieldname: "search",
-            label: __("Search Employee"),
-            change: () => this.find(this.search.get_value()),
+            label: __("Search by name or code"),
+            placeholder: __("Name or code, then Enter"),
+        });
+        this.search.$input.on("keydown", (e) => {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            this.find(this.search.get_value());
         });
 
         this.$tb = $(`
@@ -170,16 +175,8 @@ class NexlifyOrgChart {
             }
             if (act === "vacancies") this.toggle_vacancies();
             else if (act === "merge") this.toggle_merge();
-            else if (act === "layout") this.toggle_layout();
             else if (act === "layout-v" || act === "layout-h") {
                 if ((act === "layout-h") !== (this.layout === "horizontal")) this.toggle_layout();
-            }
-            else if (act === "expand") {
-                Object.keys(this.children).forEach((id) => this.expanded.add(id));
-                this.render();
-            } else if (act === "collapse") {
-                this.expanded.clear();
-                this.render();
             } else if (act === "edit") {
                 this.set_edit(!this.edit_mode);
                 this.render();
@@ -266,10 +263,6 @@ class NexlifyOrgChart {
             if (this.mode === "focus" && id !== this._focus_center) return this.set_focus(id);
             if (this.mode === "smart" && this.drill_toggle(e.currentTarget, false)) return;
             if (kind === "dept") return this.toggle_node(id);
-            if (e.ctrlKey || e.metaKey) {
-                window.open(frappe.utils.get_form_link("Employee", id), "_blank");
-                return;
-            }
             this.open_profile(id);
         });
 
@@ -310,7 +303,9 @@ class NexlifyOrgChart {
         });
 
         this.$stage.on("click", ".noc-f-top", () => this.set_focus(null));
-        $(window).on("resize", frappe.utils.debounce(() => this.mode !== "focus" && this.render(), 300));
+        $(window).on("resize", frappe.utils.debounce(() => {
+            if (this.mode !== "focus" && this.$wrap.is(":visible")) this.render();
+        }, 300));
         this.setup_minimap();
         this.setup_dnd();
     }
@@ -537,7 +532,6 @@ class NexlifyOrgChart {
             this.mode_silent("smart");
         }
         if (this.view !== "employee" && this.edit_mode) this.set_edit(false);
-        this.update_buttons();
         this.highlight = null;
         this.build();
         this.expanded = new Set(this.view === "department" ? [] : this.roots);
@@ -569,7 +563,6 @@ class NexlifyOrgChart {
 
     expand_to(level) {
         this.level = level;
-        if (level === 0) this.drill = {};
         this.expanded = new Set();
         const max = level === "all" ? Infinity : cint(level);
         this.drill = {};
@@ -658,7 +651,7 @@ class NexlifyOrgChart {
     toggle_layout() {
         this.layout = this.layout === "vertical" ? "horizontal" : "vertical";
         try { localStorage.setItem("noc_layout", this.layout); } catch (e) {}
-        this.$wrap.toggleClass("noc-h", this.layout === "horizontal");
+        this.$wrap.toggleClass("noc-h", this.mode === "full" && this.layout === "horizontal");
         this.update_buttons();
         this.render();
     }
@@ -674,7 +667,6 @@ class NexlifyOrgChart {
 
     toggle_merge() {
         this.merge_depts = !this.merge_depts;
-        this.update_buttons();
         this.highlight = null;
         this.build();
         this.expanded = new Set(this.view === "department" ? [] : this.roots);
@@ -808,6 +800,7 @@ class NexlifyOrgChart {
         this.clear_path();
         if (!this.roots.length) {
             this.$stage.html(`<div class="text-muted">${__("No active employees found")}</div>`);
+            this.$mini && this.$mini.hide();
             return;
         }
         if (this.mode === "focus") {
@@ -929,20 +922,13 @@ class NexlifyOrgChart {
 
     emp_card(id, toggle) {
         const e = this.by_id[id];
-        const dept = this.clean_dept(e.department);
         const direct = (this.reports[id] || []).length;
         const total = this.team(id);
         const top = this.view === "employee" && direct > 0 && !this.by_id[e.reports_to];
         const cls = [id === this.highlight ? "noc-hit" : "", id === this.selected ? "noc-selected" : "", top ? "noc-top" : ""].join(" ");
         const drag = this.edit_mode && this.view === "employee" ? 'draggable="true"' : "";
-        const meta = [
-            dept ? `<div class="noc-meta-row">${noc_icon("building")}<span class="noc-tx">${esc(dept)}</span></div>` : "",
-            e.branch ? `<div class="noc-meta-row">${noc_icon("pin")}<span class="noc-tx">${esc(e.branch)}</span></div>` : "",
-        ].join("");
-
         return `
             <div class="noc-card ${cls}" data-id="${esc(id)}" ${drag} style="--noc-co:${this.color(e.company)}">
-                <span class="noc-co-dot" style="background:${this.color(e.company)}" title="${esc(e.company)}"></span>
                 <div class="noc-card-head">
                     ${this.avatar(e)}
                     <div class="noc-info">
@@ -955,11 +941,6 @@ class NexlifyOrgChart {
                             ${total ? `<span class="noc-team" title="${__("Direct reports / Total team")}">${noc_icon("users")}${direct} / ${total}</span>` : ""}
                         </div>
                     </div>
-                </div>
-                ${meta ? `<div class="noc-card-meta">${meta}</div>` : ""}
-                <div class="noc-card-foot">
-                    <span class="noc-tag">${noc_icon("hash")}${esc(id)}</span>
-                    ${total ? `<span class="noc-tag noc-tag-team" title="${__("Direct reports / Total team")}">${noc_icon("users")}${direct} / ${total}</span>` : ""}
                 </div>
                 ${toggle}
             </div>`;
@@ -981,7 +962,6 @@ class NexlifyOrgChart {
         const vacs = this.show_vacancies ? this.vac_count(id) : 0;
         return `
             <div class="noc-card noc-dept ${id === this.highlight ? "noc-hit" : ""}" data-id="${esc(id)}" style="--noc-co:${co}">
-                ${d.company ? `<span class="noc-co-dot" style="background:${this.color(d.company)}" title="${esc(d.company)}"></span>` : ""}
                 <div class="noc-card-head">
                     <span class="noc-dept-icon">${noc_icon("building")}</span>
                     <div class="noc-info">
@@ -1002,10 +982,8 @@ class NexlifyOrgChart {
     vac_card(id) {
         const v = this.vac_by[id.slice(2)];
         const n = cint(v.planned_vacancies) || 1;
-        const dept = this.clean_dept(v.department);
         return `
             <div class="noc-card noc-vac" data-id="${esc(id)}" style="--noc-co:${this.color(v.company)}" title="${__("Open Job Opening")}">
-                <span class="noc-co-dot" style="background:${this.color(v.company)}" title="${esc(v.company)}"></span>
                 <div class="noc-card-head">
                     <span class="noc-dept-icon">${noc_icon("briefcase")}</span>
                     <div class="noc-info">
@@ -1013,7 +991,6 @@ class NexlifyOrgChart {
                         <div class="noc-sub">${__("Open Position")}</div>
                     </div>
                 </div>
-                ${dept ? `<div class="noc-card-meta"><div class="noc-meta-row">${noc_icon("building")}<span class="noc-tx">${esc(dept)}</span></div></div>` : ""}
                 <div class="noc-card-foot">
                     <span class="noc-tag noc-tag-vac">${noc_icon("users")}${n > 1 ? __("{0} positions", [n]) : __("1 position")}</span>
                 </div>
@@ -1039,18 +1016,43 @@ class NexlifyOrgChart {
         el && el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
     }
 
+    // exact code first, then codes / names that start with the text, then anything containing it
     find(q) {
         q = (q || "").trim().toLowerCase();
         if (!q) return;
-        const hit = this.employees.find(
-            (e) => (e.employee_name || "").toLowerCase().includes(q) || e.name.toLowerCase().includes(q)
-        );
-        if (!hit) {
+        const score = (e) => {
+            const id = e.name.toLowerCase();
+            const num = String(e.employee_number || "").toLowerCase();
+            const nm = (e.employee_name || "").toLowerCase();
+            if (id === q || num === q) return 0;
+            if (id.startsWith(q) || (num && num.startsWith(q))) return 1;
+            if (nm.startsWith(q) || nm.split(/\s+/).some((w) => w.startsWith(q))) return 2;
+            if (id.includes(q) || num.includes(q) || nm.includes(q)) return 3;
+            return 9;
+        };
+        const hits = this.employees
+            .map((e) => [score(e), e.name])
+            .filter(([sc]) => sc < 9)
+            .sort((x, y) => x[0] - y[0])
+            .map(([, id]) => id);
+        if (!hits.length) {
             frappe.show_alert({ message: __("Not found"), indicator: "orange" });
             return;
         }
-        this.reveal(hit.name);
-        this.spotlight(hit.name);
+        // Enter again on the same text moves to the next match
+        if (this._find_q === q && this._find_hits) {
+            this._find_i = (this._find_i + 1) % this._find_hits.length;
+        } else {
+            this._find_q = q;
+            this._find_hits = hits;
+            this._find_i = 0;
+        }
+        const id = this._find_hits[this._find_i];
+        this.reveal(id);
+        this.spotlight(id);
+        if (this._find_hits.length > 1) {
+            frappe.show_alert({ message: __("{0} of {1} · Enter for the next", [this._find_i + 1, this._find_hits.length]), indicator: "blue" }, 3);
+        }
     }
 
     // keep the point under (cx, cy) fixed on screen while zooming

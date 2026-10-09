@@ -3,7 +3,7 @@ from frappe import _
 
 LIST_FIELDS = [
     "name", "employee_name", "designation", "department", "branch", "image", "reports_to",
-    "company", "date_of_joining", "employment_type", "grade",
+    "company", "date_of_joining", "employment_type", "grade", "employee_number",
 ]
 DETAIL_FIELDS = [*LIST_FIELDS, "company_email", "cell_number"]
 DEPT_FIELDS = ["name", "department_name", "parent_department", "company", "is_group"]
