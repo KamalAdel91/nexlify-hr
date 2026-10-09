@@ -1,0 +1,14 @@
+{
+ "doctype": "Page",
+ "name": "nexlify-org-chart",
+ "page_name": "nexlify-org-chart",
+ "title": "Group Org Chart",
+ "module": "Nexlify HR",
+ "standard": "Yes",
+ "roles": [
+  {"role": "System Manager"},
+  {"role": "HR Manager"},
+  {"role": "HR User"},
+  {"role": "Employee"}
+ ]
+}
