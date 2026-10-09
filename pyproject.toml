@@ -3,7 +3,7 @@ name = "nexlify_hr"
 authors = [
     { name = "Kamal Adel", email = "Kamal.adel@outlook.com"}
 ]
-description = "Nexlify Hr"
+description = "Nexlify HR"
 requires-python = ">=3.14"
 readme = "README.md"
 dynamic = ["version"]

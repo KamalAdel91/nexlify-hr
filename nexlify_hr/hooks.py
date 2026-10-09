@@ -1,7 +1,7 @@
 app_name = "nexlify_hr"
-app_title = "Nexlify Hr"
+app_title = "Nexlify HR"
 app_publisher = "Kamal Adel"
-app_description = "Nexlify Hr"
+app_description = "Nexlify HR"
 app_email = "Kamal.adel@outlook.com"
 app_license = "mit"
 
@@ -15,11 +15,20 @@ app_license = "mit"
 # 	{
 # 		"name": "nexlify_hr",
 # 		"logo": "/assets/nexlify_hr/logo.png",
-# 		"title": "Nexlify Hr",
+# 		"title": "Nexlify HR",
 # 		"route": "/nexlify_hr",
-# 		"has_permission": "nexlify_hr.api.permission.has_app_permission"
+# 		"has_permission": "nexlify_hr.api.permission.has_app_permission",
 # 	}
 # ]
+
+# The dock, the rail down the left of the desk, is a document rather than a hook. Author it in
+# Manage Dock on a developer-mode site and press Export to App, and it is written to
+# `nexlify_hr/dock/nexlify_hr/nexlify_hr.json` for git to carry. An app that ships none has no
+# rail: its sidebar gets a switcher in the header instead.
+#
+# A companion app, one that extends a host app rather than standing on its own, says so with
+# `mount_on` on that same record, and its entries are appended to the host's rail. Mounting keeps
+# the companion off the apps screen, so it takes precedence over any add_to_apps_screen above.
 
 # Includes in <head>
 # ------------------
@@ -45,6 +54,7 @@ app_license = "mit"
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+# doctype_kanban_js = {"doctype" : "public/js/doctype_kanban.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 

@@ -1,6 +1,6 @@
-### Nexlify Hr
+### Nexlify HR
 
-Nexlify Hr
+Nexlify HR
 
 ### Installation
 
