@@ -73,6 +73,17 @@ def get_org_data(company=None):
             pluck="employee",
         )
 
+    # colors chosen in Nexlify HR Settings
+    company_colors = {}
+    if frappe.db.exists("DocType", "Nexlify HR Company Color"):
+        for r in frappe.get_all(
+            "Nexlify HR Company Color",
+            filters={"parent": "Nexlify HR Settings", "parenttype": "Nexlify HR Settings"},
+            fields=["company", "color"],
+        ):
+            if r.company and r.color:
+                company_colors[r.company] = r.color
+
     # Stable color slot per company (creation order), only for companies the user can already see
     present = {e.company for e in employees} | {d.get("company") for d in departments if d.get("company")}
     order = frappe.get_all("Company", pluck="name", order_by="creation asc")
@@ -84,6 +95,7 @@ def get_org_data(company=None):
         "vacancies": vacancies,
         "company_index": company_index,
         "on_leave": sorted(set(on_leave)),
+        "company_colors": company_colors,
     }
 
 

@@ -1,0 +1,30 @@
+{
+ "actions": [],
+ "creation": "2026-10-09 23:30:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": ["org_chart_section", "company_colors"],
+ "fields": [
+  {"fieldname": "org_chart_section", "fieldtype": "Section Break", "label": "Org Chart"},
+  {
+   "description": "Color of each company on the Org Chart (cards, legend, dots, export). Companies not listed keep the default colors.",
+   "fieldname": "company_colors",
+   "fieldtype": "Table",
+   "label": "Company Colors",
+   "options": "Nexlify HR Company Color"
+  }
+ ],
+ "issingle": 1,
+ "modified": "2026-10-09 23:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Nexlify HR",
+ "name": "Nexlify HR Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "email": 1, "print": 1, "read": 1, "role": "System Manager", "share": 1, "write": 1},
+  {"create": 1, "delete": 1, "email": 1, "print": 1, "read": 1, "role": "HR Manager", "share": 1, "write": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

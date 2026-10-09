@@ -273,5 +273,5 @@ app_license = "mit"
 # ignore_translatable_strings_from = []
 
 required_apps = ["erpnext", "hrms"]
-after_migrate = ["nexlify_hr.sidebar_setup.ensure_hr_org_chart"]
+after_migrate = ["nexlify_hr.sidebar_setup.ensure_hr_org_chart", "nexlify_hr.nexlify_hr.doctype.nexlify_hr_settings.nexlify_hr_settings.seed_on_migrate"]
 page_js = {"organizational-chart": "public/js/organizational_chart_override.js"}

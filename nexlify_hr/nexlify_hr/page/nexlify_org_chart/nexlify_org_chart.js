@@ -54,6 +54,7 @@ class NexlifyOrgChart {
         this.focus_id = null;
         this.level = 1;
         this.drill = {};
+        try { this.show_moved = localStorage.getItem("noc_show_moved") !== "0"; } catch (e) { this.show_moved = true; }
         this.mdept = {};
         this.edit_mode = false;
         this.can_edit = frappe.user.has_role(["HR Manager", "HR User", "System Manager"]);
@@ -121,11 +122,14 @@ class NexlifyOrgChart {
                         <div class="dropdown-menu dropdown-menu-right dropdown-menu-end noc-menu">
                             <a class="dropdown-item noc-opt" data-act="vacancies" href="#"><span class="noc-check">${noc_icon("check")}</span>${__("Show vacancies")}</a>
                             <a class="dropdown-item noc-opt" data-act="merge" href="#"><span class="noc-check">${noc_icon("check")}</span>${__("Merge companies")}</a>
+                            <a class="dropdown-item noc-opt" data-act="moved" href="#"><span class="noc-check">${noc_icon("check")}</span>${__("Show placeholders")}</a>
                             <div class="dropdown-divider"></div>
                             <a class="dropdown-item noc-opt" data-act="layout-v" href="#"><span class="noc-check">${noc_icon("check")}</span>${__("Vertical layout")}</a>
                             <a class="dropdown-item noc-opt" data-act="layout-h" href="#"><span class="noc-check">${noc_icon("check")}</span>${__("Horizontal layout")}</a>
                             <div class="dropdown-divider noc-edit-div"></div>
                             <a class="dropdown-item noc-opt" data-act="edit" href="#"><span class="noc-check">${noc_icon("check")}</span>${__("Edit mode")}</a>
+                            <div class="dropdown-divider noc-settings-div"></div>
+                            <a class="dropdown-item noc-opt" data-act="settings" href="#"><span class="noc-check">${noc_icon("check")}</span>${__("Settings")}</a>
                         </div>
                     </div>
                     <div class="btn-group">
@@ -156,6 +160,14 @@ class NexlifyOrgChart {
         this.$tb.on("click", "[data-act]", (e) => {
             e.preventDefault();
             const act = $(e.currentTarget).data("act");
+            if (act === "settings") return frappe.set_route("Form", "Nexlify HR Settings");
+            if (act === "moved") {
+                this.show_moved = !this.show_moved;
+                try { localStorage.setItem("noc_show_moved", this.show_moved ? "1" : "0"); } catch (err) {}
+                this.update_buttons();
+                this.render();
+                return;
+            }
             if (act === "vacancies") this.toggle_vacancies();
             else if (act === "merge") this.toggle_merge();
             else if (act === "layout") this.toggle_layout();
@@ -417,6 +429,7 @@ class NexlifyOrgChart {
         this.vacancies = data.vacancies || [];
         this.company_index = data.company_index || {};
         this.on_leave = new Set(data.on_leave || []);
+        this.company_colors = data.company_colors || {};
         this.by_id = {};
         this.dept_by = {};
         this.vac_by = {};
@@ -691,6 +704,9 @@ class NexlifyOrgChart {
         const opt = (act, on, enabled = true) =>
             tb.find(`[data-act="${act}"]`).toggleClass("active", !!on).toggleClass("disabled", !enabled);
         opt("vacancies", this.show_vacancies);
+        opt("moved", this.show_moved, this.mode === "smart");
+        tb.find('[data-act="settings"], .noc-settings-div').toggle(this.can_edit);
+        this.$wrap && this.$wrap.toggleClass("noc-hide-moved", !this.show_moved);
         opt("merge", this.merge_depts, dept);
         opt("layout-v", this.layout === "vertical", this.mode === "full");
         opt("layout-h", this.layout === "horizontal", this.mode === "full");
@@ -718,6 +734,7 @@ class NexlifyOrgChart {
     }
 
     color(company) {
+        if (this.company_colors && this.company_colors[company]) return this.company_colors[company];
         const i = this.company_index[company];
         return i == null ? "var(--gray-400)" : NOC_COLORS[i % NOC_COLORS.length];
     }

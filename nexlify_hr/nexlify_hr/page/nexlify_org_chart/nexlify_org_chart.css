@@ -913,4 +913,7 @@
 .noc-drills > .noc-drill:only-child::after { display: none; }
 
 /* export: drop the faded placeholders of managers that moved below their grid */
-.noc-exporting .noc-grid-level > .noc-node:has(> .noc-card.noc-moved) { display: none; }
+.noc-hide-moved .noc-grid-level > .noc-node:has(> .noc-card.noc-moved) { display: none; }
+
+/* filter dropdowns (Company link) above the legend/toolbar row */
+#page-nexlify-org-chart .page-form { position: relative; z-index: 40; }

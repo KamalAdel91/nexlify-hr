@@ -1,0 +1,22 @@
+{
+ "actions": [],
+ "creation": "2026-10-09 23:30:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": ["company", "color"],
+ "fields": [
+  {"fieldname": "company", "fieldtype": "Link", "in_list_view": 1, "label": "Company", "options": "Company", "reqd": 1},
+  {"fieldname": "color", "fieldtype": "Color", "in_list_view": 1, "label": "Color", "reqd": 1}
+ ],
+ "istable": 1,
+ "modified": "2026-10-09 23:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Nexlify HR",
+ "name": "Nexlify HR Company Color",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
