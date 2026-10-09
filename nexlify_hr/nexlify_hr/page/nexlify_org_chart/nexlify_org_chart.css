@@ -677,3 +677,149 @@
 .noc-wa { color: #128C7E !important; background: color-mix(in srgb, #25D366 15%, var(--card-bg)); }
 .noc-teams { color: #5B5FC7 !important; background: color-mix(in srgb, #5B5FC7 15%, var(--card-bg)); }
 .noc-profile .noc-contacts { margin: 0 4px 20px; }
+
+/* ===== PRO THEME (delete from this line to the end of the file to revert) ===== */
+
+/* canvas: soft top light + faint dot grid */
+.noc-wrap {
+    --noc-line: color-mix(in srgb, var(--text-muted) 40%, transparent);
+    --noc-r: 16px;
+    border-radius: 18px;
+    border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
+    background:
+        radial-gradient(1000px 420px at 50% -140px, color-mix(in srgb, var(--primary) 8%, transparent), transparent 70%),
+        var(--bg-color);
+}
+.noc-canvas {
+    background-image: radial-gradient(color-mix(in srgb, var(--text-muted) 20%, transparent) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    background-attachment: local;
+}
+
+/* cards: layered shadows, soft company tint, gradient accent */
+.noc-stage .noc-card {
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
+    background: linear-gradient(180deg, var(--card-bg) 55%, color-mix(in srgb, var(--card-bg) 93%, var(--noc-co) 7%));
+    box-shadow:
+        0 1px 1px rgba(16, 24, 40, .04),
+        0 2px 6px -1px rgba(16, 24, 40, .06),
+        0 14px 28px -14px rgba(16, 24, 40, .16);
+    transition: box-shadow .2s ease, border-color .2s ease;
+    animation: noc-in .24s ease-out backwards;
+}
+.noc-stage .noc-card::before {
+    background: linear-gradient(180deg, var(--noc-co), color-mix(in srgb, var(--noc-co) 35%, transparent));
+}
+.noc-stage .noc-card:hover {
+    border-color: color-mix(in srgb, var(--noc-co) 45%, var(--border-color));
+    box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--noc-co) 13%, transparent),
+        0 4px 10px -2px rgba(16, 24, 40, .08),
+        0 20px 38px -16px rgba(16, 24, 40, .26);
+}
+@keyframes noc-in { from { opacity: 0; transform: translateY(5px) scale(.985); } }
+.noc-stage .noc-children { animation: noc-fade .28s ease-out backwards; }
+@keyframes noc-fade { from { opacity: 0; } }
+
+/* avatar: gradient disc with a company ring */
+.noc-stage .noc-avatar, .noc-hover .noc-avatar, .noc-profile .noc-avatar {
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--noc-co, var(--gray-400)) 24%, var(--card-bg)),
+        color-mix(in srgb, var(--noc-co, var(--gray-400)) 8%, var(--card-bg)));
+    box-shadow: 0 0 0 2px var(--card-bg), 0 0 0 3.5px color-mix(in srgb, var(--noc-co, var(--gray-400)) 55%, transparent);
+    font-weight: 700; letter-spacing: .02em;
+}
+.noc-stage .noc-dept-icon {
+    background: linear-gradient(135deg,
+        color-mix(in srgb, var(--noc-co) 20%, var(--card-bg)),
+        color-mix(in srgb, var(--noc-co) 6%, var(--card-bg)));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--noc-co) 22%, transparent);
+}
+
+/* type */
+.noc-stage .noc-card .noc-name { font-weight: 650; letter-spacing: -.01em; }
+.noc-stage .noc-code {
+    font-family: var(--font-family-monospace, ui-monospace, SFMono-Regular, Menlo, monospace);
+    font-size: 10px; letter-spacing: .04em;
+}
+.noc-stage .noc-team { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--noc-co) 24%, transparent); }
+.noc-crown-ic { filter: drop-shadow(0 1px 1px rgba(186, 117, 23, .35)); }
+
+/* expand / collapse knob */
+.noc-stage .noc-toggle {
+    border: 0;
+    box-shadow: 0 0 0 1px var(--border-color), 0 2px 6px -1px rgba(16, 24, 40, .12);
+    transition: box-shadow .15s, color .15s;
+}
+.noc-stage .noc-toggle:hover {
+    color: var(--noc-co);
+    box-shadow: 0 0 0 1px var(--noc-co), 0 6px 14px -4px color-mix(in srgb, var(--noc-co) 45%, transparent);
+}
+
+/* focus: the person in the middle glows in their company color */
+.noc-f-center .noc-card {
+    border-color: color-mix(in srgb, var(--noc-co) 50%, var(--border-color)) !important;
+    box-shadow:
+        0 0 0 5px color-mix(in srgb, var(--noc-co) 13%, transparent),
+        0 24px 44px -18px rgba(16, 24, 40, .32) !important;
+}
+.noc-loose-count { background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--primary); font-weight: 600; }
+
+/* grids / frames */
+.noc-children.noc-grid-level,
+.noc-children.noc-wrap-level {
+    border-color: color-mix(in srgb, var(--text-muted) 28%, transparent);
+    background: color-mix(in srgb, var(--card-bg) 45%, transparent);
+    border-radius: 18px;
+}
+
+/* toolbar, legend and zoom: glass */
+.noc-toolbar {
+    border-radius: 14px;
+    border-color: color-mix(in srgb, var(--border-color) 80%, transparent);
+    background: color-mix(in srgb, var(--card-bg) 82%, transparent);
+    backdrop-filter: saturate(160%) blur(10px);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 10px 24px -14px rgba(16, 24, 40, .22);
+}
+.noc-seg button { transition: color .15s, background-color .15s, box-shadow .15s; }
+.noc-seg button.active { box-shadow: 0 1px 2px rgba(16, 24, 40, .08), 0 0 0 1px color-mix(in srgb, var(--border-color) 70%, transparent); }
+.noc-topbar .noc-legend { gap: 6px 8px; }
+.noc-topbar .noc-legend-item {
+    padding: 3px 11px 3px 9px; border-radius: 999px; color: var(--text-color); font-weight: 500;
+    background: var(--card-bg); border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+}
+.noc-zoom {
+    padding: 4px; gap: 2px; border-radius: 12px;
+    background: color-mix(in srgb, var(--card-bg) 82%, transparent);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 0 0 1px var(--border-color), 0 10px 22px -10px rgba(16, 24, 40, .28);
+}
+.noc-zoom .btn { border: 0; background: transparent; box-shadow: none; min-width: 30px; height: 28px; border-radius: 8px; }
+.noc-zoom .btn:hover { background: var(--subtle-fg); }
+.noc-editbar { background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 65%, #7F77DD)); }
+
+/* hover card: glass with a company-colored glow on top */
+.noc-hover-inner {
+    position: relative; overflow: hidden; border-radius: 18px;
+    background: color-mix(in srgb, var(--card-bg) 90%, transparent);
+    backdrop-filter: saturate(160%) blur(14px);
+    border: 1px solid color-mix(in srgb, var(--border-color) 80%, transparent);
+    box-shadow: 0 28px 56px -18px rgba(16, 24, 40, .34), 0 4px 12px -4px rgba(16, 24, 40, .10);
+}
+.noc-hover-inner::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 72px; pointer-events: none;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--noc-co) 18%, transparent), transparent);
+}
+.noc-hover-inner > * { position: relative; }
+
+/* exports and reduced motion: no animation */
+.noc-exporting .noc-card, .noc-exporting .noc-children { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+    .noc-stage .noc-card, .noc-stage .noc-children { animation: none; }
+}
+
+/* keep the toolbar menus above the chart (the glass blur creates its own layer) */
+.noc-topbar { position: relative; z-index: 20; }
+.noc-toolbar .dropdown-menu { z-index: 30; }
