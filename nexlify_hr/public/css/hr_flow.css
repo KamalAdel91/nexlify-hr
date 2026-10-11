@@ -1,0 +1,487 @@
+/* Nexlify HR: Business Flow panel. Linked into each Custom HTML Block's shadow root by
+   hr_flow.js. Colours come from the desk's own variables, so light and dark follow the desk. */
+
+.nxf {
+	--nxf-ink: var(--text-color, #1f272e);
+	--nxf-muted: var(--text-muted, #6b7280);
+	--nxf-faint: var(--text-light, #9ca3af);
+	--nxf-panel: var(--subtle-fg, #f7f7f7);
+	--nxf-card: var(--card-bg, #ffffff);
+	--nxf-rule: var(--border-color, #e5e7eb);
+	--nxf-ctl: var(--control-bg, #f0f0f0);
+	--nxf-tint: color-mix(in srgb, var(--nxf-line) 14%, transparent);
+	--nxf-warn: #e8a317;
+	--nxf-warn-ink: #3d2a00;
+	--nxf-dot: 34px;
+
+	position: relative;
+	box-sizing: border-box;
+	padding: 16px 18px 18px;
+	border-radius: 12px;
+	background: var(--nxf-panel);
+	color: var(--nxf-ink);
+	font-family: inherit;
+	font-size: 13px;
+	line-height: 1.45;
+}
+.nxf *,
+.nxf *::before,
+.nxf *::after {
+	box-sizing: border-box;
+}
+.nxf button {
+	font: inherit;
+	color: inherit;
+	background: none;
+	border: 0;
+	padding: 0;
+	cursor: pointer;
+}
+.nxf button:focus-visible {
+	outline: 2px solid var(--nxf-line);
+	outline-offset: 2px;
+	border-radius: 8px;
+}
+.nxf-i {
+	width: 16px;
+	height: 16px;
+	flex: none;
+}
+
+/* ---------- header ---------- */
+
+.nxf-head {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.nxf-heading {
+	flex: 1;
+	min-width: 0;
+}
+.nxf-title {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+	color: var(--nxf-ink);
+}
+.nxf-sub {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 10px;
+	margin: 2px 0 0;
+	color: var(--nxf-muted);
+	font-size: 12.5px;
+}
+.nxf-attn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--nxf-ink);
+}
+.nxf-attn::before {
+	content: "";
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--nxf-warn);
+}
+
+.nxf-ring {
+	position: relative;
+	width: 40px;
+	height: 40px;
+	flex: none;
+}
+.nxf-ring svg {
+	width: 100%;
+	height: 100%;
+	transform: rotate(-90deg);
+}
+.nxf-ring circle {
+	fill: none;
+	stroke-width: 3.5;
+}
+.nxf-ring-bg {
+	stroke: var(--nxf-rule);
+}
+.nxf-ring-fg {
+	stroke: var(--nxf-line);
+	stroke-linecap: round;
+	transition: stroke-dashoffset 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.nxf-ring span {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+.nxf-ring small {
+	font-size: 10px;
+	font-weight: 500;
+	color: var(--nxf-muted);
+}
+
+.nxf-tools {
+	display: flex;
+	gap: 2px;
+}
+.nxf .nxf-tool {
+	display: grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	color: var(--nxf-muted);
+}
+.nxf-tool:hover {
+	background: var(--nxf-ctl);
+	color: var(--nxf-ink);
+}
+.nxf-fold .nxf-i {
+	transition: transform 180ms ease;
+}
+.nxf.is-collapsed .nxf-fold .nxf-i {
+	transform: rotate(-90deg);
+}
+.nxf.is-collapsed .nxf-body {
+	display: none;
+}
+
+/* ---------- the route ---------- */
+
+.nxf-track {
+	display: grid;
+	grid-template-columns: repeat(var(--nxf-n), minmax(108px, 1fr));
+	margin: 18px -6px 0;
+	padding: 2px 0 6px;
+	list-style: none;
+	overflow-x: auto;
+	scroll-snap-type: x proximity;
+	scrollbar-width: thin;
+}
+.nxf-st {
+	position: relative;
+	scroll-snap-align: start;
+}
+
+/* the segment from this station to the next one */
+.nxf-st:not(:last-child)::after {
+	content: "";
+	position: absolute;
+	top: calc(var(--nxf-dot) / 2 + 1px);
+	inset-inline-start: calc(50% + var(--nxf-dot) / 2 + 4px);
+	width: calc(100% - var(--nxf-dot) - 8px);
+	height: 0;
+	border-top: 2px dashed var(--nxf-rule);
+}
+.nxf-st.seg-solid::after {
+	border-top-style: solid;
+	border-top-color: var(--nxf-line);
+}
+.nxf-st.seg-flow::after {
+	height: 2px;
+	border: 0;
+	background: repeating-linear-gradient(
+		90deg,
+		var(--nxf-line) 0 6px,
+		transparent 6px 11px
+	);
+	background-size: 22px 2px;
+	animation: nxf-flow 1.1s linear infinite;
+}
+:host-context([dir="rtl"]) .nxf-st.seg-flow::after {
+	animation-direction: reverse;
+}
+
+.nxf-st-btn {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+	padding: 0 6px 8px;
+	text-align: center;
+}
+.nxf-dot {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: var(--nxf-dot);
+	height: var(--nxf-dot);
+	margin-top: 1px;
+	border-radius: 50%;
+	border: 1.5px solid var(--nxf-rule);
+	background: var(--nxf-card);
+	color: var(--nxf-muted);
+	transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.nxf-num {
+	font-size: 12.5px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+.nxf-st-label {
+	max-width: 15ch;
+	font-size: 12.5px;
+	font-weight: 500;
+	line-height: 1.3;
+	color: var(--nxf-ink);
+}
+.nxf-st-meta {
+	margin-top: -3px;
+	font-size: 11.5px;
+	color: var(--nxf-muted);
+	font-variant-numeric: tabular-nums;
+}
+.nxf-st-meta em {
+	font-style: normal;
+	color: var(--nxf-faint);
+}
+
+.nxf-st.is-done .nxf-dot {
+	border-color: var(--nxf-line);
+	background: var(--nxf-line);
+	color: #fff;
+}
+.nxf-st.is-next .nxf-dot {
+	border: 2px solid var(--nxf-line);
+	color: var(--nxf-line);
+	box-shadow: 0 0 0 4px var(--nxf-tint);
+	animation: nxf-call 1.6s ease-out 400ms 2;
+}
+.nxf-st.is-optional:not(.is-done) .nxf-dot {
+	border-style: dashed;
+}
+.nxf-st.is-report .nxf-dot {
+	border-style: solid;
+	background: var(--nxf-ctl);
+}
+.nxf-st.is-locked .nxf-st-btn {
+	opacity: 0.55;
+}
+.nxf-st.is-todo:not(.is-next) .nxf-st-label {
+	color: var(--nxf-muted);
+}
+
+.nxf-st-btn:hover .nxf-dot {
+	transform: translateY(-1px);
+	border-color: var(--nxf-line);
+}
+.nxf-st.is-selected .nxf-dot {
+	transform: scale(1.08);
+}
+.nxf-st.is-selected .nxf-st-label {
+	color: var(--nxf-ink);
+	font-weight: 600;
+}
+.nxf-st.is-selected .nxf-st-btn::after {
+	content: "";
+	width: 18px;
+	height: 3px;
+	margin-top: 1px;
+	border-radius: 2px;
+	background: var(--nxf-line);
+}
+
+.nxf-badge {
+	position: absolute;
+	top: -7px;
+	inset-inline-end: -11px;
+	min-width: 19px;
+	height: 19px;
+	padding: 0 5px;
+	border-radius: 10px;
+	border: 2px solid var(--nxf-panel);
+	font-size: 10.5px;
+	font-weight: 700;
+	line-height: 15px;
+	font-variant-numeric: tabular-nums;
+}
+.nxf-badge.tone-warn {
+	background: var(--nxf-warn);
+	color: var(--nxf-warn-ink);
+}
+.nxf-badge.tone-info {
+	background: var(--nxf-card);
+	color: var(--nxf-line);
+	border-color: var(--nxf-tint);
+}
+
+/* ---------- selected step ---------- */
+
+.nxf-detail {
+	margin-top: 8px;
+}
+.nxf-card {
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	align-items: center;
+	gap: 14px;
+	padding: 14px 16px;
+	border-radius: 10px;
+	background: var(--nxf-card);
+	border: 1px solid var(--nxf-rule);
+}
+.nxf-card.is-entering {
+	animation: nxf-in 180ms ease-out;
+}
+.nxf-card-icon {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+	background: var(--nxf-tint);
+	color: var(--nxf-line);
+}
+.nxf-card-icon .nxf-i {
+	width: 20px;
+	height: 20px;
+}
+.nxf-card-text {
+	min-width: 0;
+}
+.nxf-card-pos {
+	margin: 0;
+	font-size: 11.5px;
+	color: var(--nxf-muted);
+}
+.nxf-card-title {
+	margin: 1px 0 2px;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--nxf-ink);
+}
+.nxf-card-hint {
+	margin: 0;
+	max-width: 68ch;
+	color: var(--nxf-muted);
+}
+.nxf-card-status {
+	margin: 4px 0 0;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--nxf-line);
+}
+.nxf-card-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.nxf .nxf-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	height: 30px;
+	padding: 0 12px;
+	border-radius: 8px;
+	background: var(--nxf-ctl);
+	font-size: 13px;
+	font-weight: 500;
+	white-space: nowrap;
+	color: var(--nxf-ink);
+	transition: filter 120ms ease, background 120ms ease;
+}
+.nxf-btn .nxf-i {
+	width: 14px;
+	height: 14px;
+}
+.nxf-btn:hover {
+	filter: brightness(0.96);
+}
+.nxf-btn.is-primary {
+	background: var(--nxf-line);
+	color: #fff;
+}
+.nxf-btn.is-primary:hover {
+	filter: brightness(1.08);
+}
+.nxf-pending.tone-warn {
+	background: color-mix(in srgb, var(--nxf-warn) 18%, transparent);
+	color: var(--nxf-ink);
+}
+.nxf-pending.tone-info {
+	background: var(--nxf-tint);
+}
+.nxf-pending b {
+	font-variant-numeric: tabular-nums;
+}
+
+/* ---------- loading / error ---------- */
+
+.nxf-loading {
+	padding: 18px;
+}
+.nxf-skel {
+	height: 96px;
+	border-radius: 8px;
+	background: linear-gradient(90deg, var(--nxf-rule) 0%, var(--nxf-panel) 50%, var(--nxf-rule) 100%);
+	background-size: 200% 100%;
+	opacity: 0.6;
+	animation: nxf-shimmer 1.4s linear infinite;
+}
+.nxf-error {
+	color: var(--nxf-muted);
+}
+
+/* ---------- narrow screens ---------- */
+
+@media (max-width: 720px) {
+	.nxf {
+		padding: 14px;
+	}
+	.nxf-card {
+		grid-template-columns: auto 1fr;
+	}
+	.nxf-card-actions {
+		grid-column: 1 / -1;
+		justify-content: flex-start;
+	}
+}
+
+/* ---------- motion ---------- */
+
+@keyframes nxf-flow {
+	to {
+		background-position: 22px 0;
+	}
+}
+@keyframes nxf-call {
+	0% {
+		box-shadow: 0 0 0 4px var(--nxf-tint);
+	}
+	50% {
+		box-shadow: 0 0 0 9px transparent;
+	}
+	100% {
+		box-shadow: 0 0 0 4px var(--nxf-tint);
+	}
+}
+@keyframes nxf-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+}
+@keyframes nxf-shimmer {
+	to {
+		background-position: -200% 0;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.nxf *,
+	.nxf *::before,
+	.nxf *::after {
+		animation: none !important;
+		transition: none !important;
+	}
+}

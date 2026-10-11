@@ -273,5 +273,14 @@ app_license = "mit"
 # ignore_translatable_strings_from = []
 
 required_apps = ["erpnext", "hrms"]
-after_migrate = ["nexlify_hr.sidebar_setup.ensure_hr_org_chart", "nexlify_hr.nexlify_hr.doctype.nexlify_hr_settings.nexlify_hr_settings.seed_on_migrate"]
+after_migrate = [
+	"nexlify_hr.sidebar_setup.ensure_hr_org_chart",
+	"nexlify_hr.nexlify_hr.doctype.nexlify_hr_settings.nexlify_hr_settings.seed_on_migrate",
+	"nexlify_hr.hr_flows.setup_workspace_flows",
+]
+before_uninstall = "nexlify_hr.hr_flows.remove_workspace_flows"
+
+# Business Flow panels at the top of the HRMS workspaces (see hr_flows.py)
+app_include_js = ["/assets/nexlify_hr/js/hr_flow.js"]
+app_include_css = ["/assets/nexlify_hr/css/hr_flow.css"]
 page_js = {"organizational-chart": "public/js/organizational_chart_override.js"}
