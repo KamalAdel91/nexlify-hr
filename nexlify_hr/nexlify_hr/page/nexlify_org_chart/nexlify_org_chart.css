@@ -626,3 +626,8 @@
 @media (prefers-reduced-motion: reduce) {
     .noc-card, .noc-stage .noc-children { animation: none; }
 }
+
+/* ---------- avatar size on cards (change --noc-av to resize) ---------- */
+.noc-wrap { --noc-av: 42px; }
+.noc-card .noc-avatar, .noc-card .noc-dept-icon { width: var(--noc-av); height: var(--noc-av); font-size: 12.5px; }
+.noc-f-center .noc-card .noc-avatar, .noc-f-center .noc-card .noc-dept-icon { width: 48px; height: 48px; font-size: 15px; }
