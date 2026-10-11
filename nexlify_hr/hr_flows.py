@@ -6,6 +6,7 @@ public/js/hr_flow.js and the steps live in FLOWS below, so everything is version
 
 Edit FLOWS to change a flow. A step is:
 	label     what the step is called
+	actor     who does it (shown under the station)
 	hint      one sentence shown when the step is selected
 	doctype   the record the step is about (its count decides "in use")
 	filters   optional: only count these records as "in use"
@@ -33,9 +34,12 @@ FLOWS = {
 		"onboarding": "HR Onboarding",
 		"color": "#1D9E75",
 		"title": "Employee lifecycle",
+		"icon": "users",
+		"summary": "How an employee moves through HR, from hiring to payroll and review. Select a stage to open its workspace.",
 		"steps": [
 			{
 				"label": "Employees",
+				"actor": "HR",
 				"icon": "users",
 				"doctype": "Employee",
 				"pending": {"label": "active", "filters": {"status": "Active"}, "tone": "info"},
@@ -44,6 +48,7 @@ FLOWS = {
 			},
 			{
 				"label": "Recruitment",
+				"actor": "HR and hiring managers",
 				"icon": "search",
 				"workspace": "Recruitment",
 				"doctype": "Job Opening",
@@ -52,6 +57,7 @@ FLOWS = {
 			},
 			{
 				"label": "Tenure",
+				"actor": "HR and task owners",
 				"icon": "user-check",
 				"workspace": "Tenure",
 				"doctype": "Employee Onboarding",
@@ -63,6 +69,7 @@ FLOWS = {
 			},
 			{
 				"label": "Shift & Attendance",
+				"actor": "HR and employees",
 				"icon": "clock",
 				"workspace": "Shift & Attendance",
 				"doctype": "Attendance",
@@ -71,6 +78,7 @@ FLOWS = {
 			},
 			{
 				"label": "Leaves",
+				"actor": "Employees and leave approvers",
 				"icon": "sun",
 				"workspace": "Leaves",
 				"doctype": "Leave Allocation",
@@ -83,6 +91,7 @@ FLOWS = {
 			},
 			{
 				"label": "Expenses",
+				"actor": "Employees and expense approvers",
 				"icon": "receipt",
 				"workspace": "Expenses",
 				"doctype": "Expense Claim",
@@ -91,6 +100,7 @@ FLOWS = {
 			},
 			{
 				"label": "Payroll",
+				"actor": "Payroll team",
 				"icon": "wallet",
 				"workspace": "Payroll",
 				"doctype": "Payroll Entry",
@@ -99,6 +109,7 @@ FLOWS = {
 			},
 			{
 				"label": "Tax & Benefits",
+				"actor": "Payroll team and employees",
 				"icon": "percent",
 				"workspace": "Tax & Benefits",
 				"doctype": "Employee Tax Exemption Declaration",
@@ -108,6 +119,7 @@ FLOWS = {
 			},
 			{
 				"label": "Performance",
+				"actor": "Managers and employees",
 				"icon": "star",
 				"workspace": "Performance",
 				"doctype": "Appraisal Cycle",
@@ -121,9 +133,12 @@ FLOWS = {
 		"onboarding": "Recruitment Onboarding",
 		"color": "#378ADD",
 		"title": "Hire an employee",
+		"icon": "search",
+		"summary": "From an open vacancy to a signed appointment letter.",
 		"steps": [
 			{
 				"label": "Job Opening",
+				"actor": "HR or the hiring manager",
 				"icon": "briefcase",
 				"doctype": "Job Opening",
 				"pending": {"label": "open", "filters": {"status": "Open"}, "tone": "info"},
@@ -132,6 +147,7 @@ FLOWS = {
 			},
 			{
 				"label": "Job Applicant",
+				"actor": "HR, or candidates from the careers page",
 				"icon": "users",
 				"doctype": "Job Applicant",
 				"pending": {"label": "to screen", "filters": {"status": "Open"}},
@@ -140,6 +156,7 @@ FLOWS = {
 			},
 			{
 				"label": "Interview",
+				"actor": "Interviewers",
 				"icon": "message",
 				"doctype": "Interview",
 				"optional": 1,
@@ -149,6 +166,7 @@ FLOWS = {
 			},
 			{
 				"label": "Job Offer",
+				"actor": "HR",
 				"icon": "file-check",
 				"doctype": "Job Offer",
 				"pending": {"label": "awaiting reply", "filters": {"status": "Awaiting Response"}},
@@ -157,6 +175,7 @@ FLOWS = {
 			},
 			{
 				"label": "Appointment Letter",
+				"actor": "HR",
 				"icon": "file",
 				"doctype": "Appointment Letter",
 				"optional": 1,
@@ -165,6 +184,7 @@ FLOWS = {
 			},
 			{
 				"label": "Recruitment Analytics",
+				"actor": "HR Manager",
 				"icon": "chart",
 				"report": "Recruitment Analytics",
 				"optional": 1,
@@ -177,9 +197,12 @@ FLOWS = {
 		"onboarding": "Tenure Onboarding",
 		"color": "#7F77DD",
 		"title": "Welcome and see off employees",
+		"icon": "user-check",
+		"summary": "Joining tasks when someone starts, training while they work, and exit tasks when they leave.",
 		"steps": [
 			{
 				"label": "Onboarding Template",
+				"actor": "HR Manager",
 				"icon": "list-check",
 				"doctype": "Employee Onboarding Template",
 				"optional": 1,
@@ -188,6 +211,7 @@ FLOWS = {
 			},
 			{
 				"label": "Employee Onboarding",
+				"actor": "HR and the task owners",
 				"icon": "user-plus",
 				"doctype": "Employee Onboarding",
 				"pending": {
@@ -199,6 +223,7 @@ FLOWS = {
 			},
 			{
 				"label": "Training Program",
+				"actor": "HR",
 				"icon": "book",
 				"doctype": "Training Program",
 				"optional": 1,
@@ -207,6 +232,7 @@ FLOWS = {
 			},
 			{
 				"label": "Training Event",
+				"actor": "HR",
 				"icon": "calendar",
 				"doctype": "Training Event",
 				"optional": 1,
@@ -216,6 +242,7 @@ FLOWS = {
 			},
 			{
 				"label": "Employee Separation",
+				"actor": "HR and the task owners",
 				"icon": "user-minus",
 				"doctype": "Employee Separation",
 				"pending": {
@@ -227,6 +254,7 @@ FLOWS = {
 			},
 			{
 				"label": "Employee Analytics",
+				"actor": "HR Manager",
 				"icon": "chart",
 				"report": "Employee Analytics",
 				"optional": 1,
@@ -239,9 +267,12 @@ FLOWS = {
 		"onboarding": "Shift and Attendance Onboarding",
 		"color": "#0E8A9C",
 		"title": "Track attendance and shifts",
+		"icon": "clock",
+		"summary": "Define working hours, put people on shifts, and turn check-ins into daily attendance.",
 		"steps": [
 			{
 				"label": "Shift Type",
+				"actor": "HR Manager",
 				"icon": "clock",
 				"doctype": "Shift Type",
 				"hint": "Working hours, grace periods and the rules that turn check-ins into attendance.",
@@ -249,6 +280,7 @@ FLOWS = {
 			},
 			{
 				"label": "Shift Assignment",
+				"actor": "HR",
 				"icon": "user-check",
 				"doctype": "Shift Assignment",
 				"pending": {"label": "active", "filters": {"status": "Active", "docstatus": 1}, "tone": "info"},
@@ -257,6 +289,7 @@ FLOWS = {
 			},
 			{
 				"label": "Employee Checkin",
+				"actor": "Employees or the attendance device",
 				"icon": "fingerprint",
 				"doctype": "Employee Checkin",
 				"optional": 1,
@@ -265,6 +298,7 @@ FLOWS = {
 			},
 			{
 				"label": "Attendance",
+				"actor": "HR, or automatic from check-ins",
 				"icon": "calendar-check",
 				"doctype": "Attendance",
 				"hint": "The day's status for an employee: present, absent, half day or on leave.",
@@ -272,6 +306,7 @@ FLOWS = {
 			},
 			{
 				"label": "Attendance Request",
+				"actor": "Employee, approved by their manager",
 				"icon": "inbox",
 				"doctype": "Attendance Request",
 				"optional": 1,
@@ -281,6 +316,7 @@ FLOWS = {
 			},
 			{
 				"label": "Monthly Attendance Sheet",
+				"actor": "HR",
 				"icon": "chart",
 				"report": "Monthly Attendance Sheet",
 				"optional": 1,
@@ -293,9 +329,12 @@ FLOWS = {
 		"onboarding": "Leaves Onboarding",
 		"color": "#639922",
 		"title": "Manage time off",
+		"icon": "sun",
+		"summary": "Set up holidays and leave types once, give employees their days, then approve their requests.",
 		"steps": [
 			{
 				"label": "Holiday List",
+				"actor": "HR Manager",
 				"icon": "calendar",
 				"doctype": "Holiday List",
 				"hint": "Weekly offs and public holidays for the year.",
@@ -303,6 +342,7 @@ FLOWS = {
 			},
 			{
 				"label": "Leave Type",
+				"actor": "HR Manager",
 				"icon": "tag",
 				"doctype": "Leave Type",
 				"hint": "Annual, sick, unpaid: how each kind of leave behaves.",
@@ -310,6 +350,7 @@ FLOWS = {
 			},
 			{
 				"label": "Leave Policy",
+				"actor": "HR Manager",
 				"icon": "layers",
 				"doctype": "Leave Policy",
 				"optional": 1,
@@ -318,6 +359,7 @@ FLOWS = {
 			},
 			{
 				"label": "Leave Allocation",
+				"actor": "HR",
 				"icon": "gift",
 				"doctype": "Leave Allocation",
 				"hint": "The days an employee can take of a leave type in a period.",
@@ -325,6 +367,7 @@ FLOWS = {
 			},
 			{
 				"label": "Leave Application",
+				"actor": "Employee, approved by the leave approver",
 				"icon": "send",
 				"doctype": "Leave Application",
 				"pending": {"label": "to approve", "filters": {"status": "Open", "docstatus": 0}},
@@ -333,6 +376,7 @@ FLOWS = {
 			},
 			{
 				"label": "Leave Balance",
+				"actor": "HR and employees",
 				"icon": "chart",
 				"report": "Employee Leave Balance",
 				"optional": 1,
@@ -345,9 +389,12 @@ FLOWS = {
 		"onboarding": "Expenses Onboarding",
 		"color": "#BA7517",
 		"title": "Settle employee expenses",
+		"icon": "receipt",
+		"summary": "An employee spends for work, claims it with receipts, gets it approved, then gets paid back.",
 		"steps": [
 			{
 				"label": "Employee Advance",
+				"actor": "Employee asks, accounts pay",
 				"icon": "hand-coins",
 				"doctype": "Employee Advance",
 				"optional": 1,
@@ -357,6 +404,7 @@ FLOWS = {
 			},
 			{
 				"label": "Expense Claim",
+				"actor": "Employee, approved by the expense approver",
 				"icon": "receipt",
 				"doctype": "Expense Claim",
 				"pending": {"label": "to approve", "filters": {"approval_status": "Draft", "docstatus": 0}},
@@ -365,6 +413,7 @@ FLOWS = {
 			},
 			{
 				"label": "Pay Back",
+				"actor": "Accounts",
 				"icon": "wallet",
 				"doctype": "Expense Claim",
 				"filters": {"status": "Paid"},
@@ -375,6 +424,7 @@ FLOWS = {
 			},
 			{
 				"label": "Travel Request",
+				"actor": "Employee",
 				"icon": "plane",
 				"doctype": "Travel Request",
 				"optional": 1,
@@ -383,6 +433,7 @@ FLOWS = {
 			},
 			{
 				"label": "Unpaid Expense Claim",
+				"actor": "Accounts",
 				"icon": "chart",
 				"report": "Unpaid Expense Claim",
 				"optional": 1,
@@ -395,9 +446,12 @@ FLOWS = {
 		"onboarding": "Payroll Onboarding",
 		"color": "#D85A30",
 		"title": "Run payroll",
+		"icon": "wallet",
+		"summary": "Build salaries from components, assign them to employees, then run payroll every period.",
 		"steps": [
 			{
 				"label": "Salary Component",
+				"actor": "Payroll team",
 				"icon": "puzzle",
 				"doctype": "Salary Component",
 				"hint": "Basic, allowances, deductions: each line that can appear on a salary slip.",
@@ -405,6 +459,7 @@ FLOWS = {
 			},
 			{
 				"label": "Salary Structure",
+				"actor": "Payroll team",
 				"icon": "layers",
 				"doctype": "Salary Structure",
 				"hint": "The earnings and deductions that make up a salary, and how each is calculated.",
@@ -412,6 +467,7 @@ FLOWS = {
 			},
 			{
 				"label": "Structure Assignment",
+				"actor": "HR",
 				"icon": "user-check",
 				"doctype": "Salary Structure Assignment",
 				"hint": "Gives an employee a structure and a base from a date.",
@@ -419,6 +475,7 @@ FLOWS = {
 			},
 			{
 				"label": "Payroll Entry",
+				"actor": "Payroll team",
 				"icon": "play",
 				"doctype": "Payroll Entry",
 				"pending": {"label": "in draft", "filters": {"docstatus": 0}},
@@ -427,6 +484,7 @@ FLOWS = {
 			},
 			{
 				"label": "Additional Salary",
+				"actor": "HR",
 				"icon": "plus-circle",
 				"doctype": "Additional Salary",
 				"optional": 1,
@@ -435,6 +493,7 @@ FLOWS = {
 			},
 			{
 				"label": "Salary Register",
+				"actor": "Payroll team",
 				"icon": "chart",
 				"report": "Salary Register",
 				"optional": 1,
@@ -447,9 +506,12 @@ FLOWS = {
 		"onboarding": "Tax and Benefits Onboarding",
 		"color": "#D4537E",
 		"title": "Deduct the right tax",
+		"icon": "percent",
+		"summary": "Set the tax year and brackets, collect employees' exemptions, and payroll deducts the right tax.",
 		"steps": [
 			{
 				"label": "Payroll Period",
+				"actor": "Payroll team",
 				"icon": "calendar",
 				"doctype": "Payroll Period",
 				"hint": "The financial year that tax is calculated over.",
@@ -457,6 +519,7 @@ FLOWS = {
 			},
 			{
 				"label": "Income Tax Slab",
+				"actor": "Payroll team",
 				"icon": "percent",
 				"doctype": "Income Tax Slab",
 				"hint": "The tax brackets and rates for a period.",
@@ -464,6 +527,7 @@ FLOWS = {
 			},
 			{
 				"label": "Exemption Declaration",
+				"actor": "Employee",
 				"icon": "file-text",
 				"doctype": "Employee Tax Exemption Declaration",
 				"pending": {"label": "in draft", "filters": {"docstatus": 0}},
@@ -472,6 +536,7 @@ FLOWS = {
 			},
 			{
 				"label": "Exemption Proof",
+				"actor": "Employee",
 				"icon": "file-check",
 				"doctype": "Employee Tax Exemption Proof Submission",
 				"optional": 1,
@@ -481,6 +546,7 @@ FLOWS = {
 			},
 			{
 				"label": "Benefit Application",
+				"actor": "Employee",
 				"icon": "gift",
 				"doctype": "Employee Benefit Application",
 				"optional": 1,
@@ -489,6 +555,7 @@ FLOWS = {
 			},
 			{
 				"label": "Gratuity Rule",
+				"actor": "Payroll team",
 				"icon": "scale",
 				"doctype": "Gratuity Rule",
 				"optional": 1,
@@ -497,6 +564,7 @@ FLOWS = {
 			},
 			{
 				"label": "Income Tax Computation",
+				"actor": "Payroll team",
 				"icon": "chart",
 				"report": "Income Tax Computation",
 				"optional": 1,
@@ -509,9 +577,12 @@ FLOWS = {
 		"onboarding": "Performance Onboarding",
 		"color": "#9A4DCC",
 		"title": "Review performance",
+		"icon": "star",
+		"summary": "Decide what is measured, run an appraisal cycle, and score each employee.",
 		"steps": [
 			{
 				"label": "Key Result Area",
+				"actor": "HR Manager",
 				"icon": "target",
 				"doctype": "KRA",
 				"hint": "An area a role is measured on, such as quality or customer satisfaction.",
@@ -519,6 +590,7 @@ FLOWS = {
 			},
 			{
 				"label": "Appraisal Template",
+				"actor": "HR Manager",
 				"icon": "layout",
 				"doctype": "Appraisal Template",
 				"hint": "The KRAs and rating criteria with their weights, reused across appraisals.",
@@ -526,6 +598,7 @@ FLOWS = {
 			},
 			{
 				"label": "Appraisal Cycle",
+				"actor": "HR",
 				"icon": "refresh",
 				"doctype": "Appraisal Cycle",
 				"pending": {"label": "running", "filters": {"status": "In Progress"}, "tone": "info"},
@@ -534,6 +607,7 @@ FLOWS = {
 			},
 			{
 				"label": "Appraisal",
+				"actor": "Employee and their manager",
 				"icon": "star",
 				"doctype": "Appraisal",
 				"pending": {"label": "in draft", "filters": {"docstatus": 0}},
@@ -542,6 +616,7 @@ FLOWS = {
 			},
 			{
 				"label": "Performance Feedback",
+				"actor": "Reviewers",
 				"icon": "message",
 				"doctype": "Employee Performance Feedback",
 				"optional": 1,
@@ -550,6 +625,7 @@ FLOWS = {
 			},
 			{
 				"label": "Appraisal Overview",
+				"actor": "HR Manager",
 				"icon": "chart",
 				"report": "Appraisal Overview",
 				"optional": 1,
@@ -577,6 +653,7 @@ def get_flow(flow: str):
 	for step in config["steps"]:
 		out = {
 			"label": _(step["label"]),
+			"actor": _(step.get("actor") or ""),
 			"hint": _(step.get("hint") or ""),
 			"icon": step.get("icon") or "circle",
 			"optional": bool(step.get("optional")),
@@ -611,7 +688,13 @@ def get_flow(flow: str):
 
 		steps.append(out)
 
-	return {"title": _(config["title"]), "color": config["color"], "steps": steps}
+	return {
+		"title": _(config["title"]),
+		"summary": _(config.get("summary") or ""),
+		"icon": config.get("icon") or "circle",
+		"color": config["color"],
+		"steps": steps,
+	}
 
 
 def _count(doctype, filters=None):
