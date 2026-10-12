@@ -257,11 +257,13 @@ class NexlifyOrgChart {
 
         // designation card: the holder's name opens their profile, "N employees" opens the list
         this.$stage.on("click", "[data-noc-holder]", (e) => {
+            if (this.mode === "focus" && $(e.currentTarget).closest(".noc-card").attr("data-id") !== this._focus_center) return;
             e.stopPropagation();
             this.hide_hover();
             this.open_profile($(e.currentTarget).attr("data-noc-holder"));
         });
         this.$stage.on("click", "[data-noc-desig-list]", (e) => {
+            if (this.mode === "focus" && $(e.currentTarget).closest(".noc-card").attr("data-id") !== this._focus_center) return;
             e.stopPropagation();
             frappe.set_route("List", "Employee", { designation: $(e.currentTarget).attr("data-noc-desig-list"), status: "Active" });
         });
@@ -686,7 +688,7 @@ class NexlifyOrgChart {
     render_focus() {
         let id = this.focus_id;
         if (id && !(id in this.parent) && !this.roots.includes(id)) id = null;
-        const loose = this.roots.filter((r) => this.kind(r) !== "dept" && !(this.children[r] || []).length);
+        const loose = this.roots.filter((r) => this.is_loose(r));
         const trees = this.roots.filter((r) => !loose.includes(r));
         if (!id && trees.length === 1) id = trees[0];
         this._focus_center = id;
@@ -721,7 +723,7 @@ class NexlifyOrgChart {
                 : `<div class="noc-f-empty">${__("No direct reports")}</div>`;
         }
         if (loose.length && (!id || !this.parent[id])) {
-            html += `<div class="noc-f-loose"><div class="noc-f-title">${noc_icon("users")}${__("No manager assigned")}<span class="noc-loose-count">${loose.length}</span></div>${grid(loose)}</div>`;
+            html += `<div class="noc-f-loose"><div class="noc-f-title">${noc_icon("users")}${this.loose_title()}<span class="noc-loose-count">${loose.length}</span></div>${grid(loose)}</div>`;
         }
         this.$stage.html(`<div class="noc-focus">${html}</div>`);
     }
@@ -810,6 +812,15 @@ class NexlifyOrgChart {
 
     grouped() {
         return this.view !== "employee";
+    }
+
+    // a root with nothing under it: an employee with no manager and no team, or a designation not linked to the structure yet
+    is_loose(id) {
+        return (this.kind(id) !== "dept" || id.startsWith("g:")) && !(this.children[id] || []).length;
+    }
+
+    loose_title() {
+        return this.view === "designation" ? __("Not linked to the structure yet") : __("No manager assigned");
     }
 
     color(company) {
@@ -909,7 +920,7 @@ class NexlifyOrgChart {
         // real trees on top; employees with no manager and no team go to a compact grid below
         const trees = [], loose = [];
         this.roots.forEach((id) =>
-            (this.kind(id) !== "dept" && !(this.children[id] || []).length ? loose : trees).push(id));
+            (this.is_loose(id) ? loose : trees).push(id));
         this.$stage.empty();
         if (trees.length) {
             const $ul = $('<ul class="noc-root"></ul>');
@@ -919,7 +930,7 @@ class NexlifyOrgChart {
         if (loose.length) {
             const $sec = $(`
                 <div class="noc-loose">
-                    <div class="noc-loose-title">${noc_icon("users")}${__("No manager assigned")}<span class="noc-loose-count">${loose.length}</span></div>
+                    <div class="noc-loose-title">${noc_icon("users")}${this.loose_title()}<span class="noc-loose-count">${loose.length}</span></div>
                     <ul class="noc-loose-grid" style="grid-template-columns: repeat(${Math.min(6, loose.length)}, var(--noc-card-w))"></ul>
                 </div>`);
             const $g = $sec.find(".noc-loose-grid");
@@ -1072,7 +1083,7 @@ class NexlifyOrgChart {
         const holders = (this.desig_emps[name] || []).map((k) => this.by_id[k]);
         const vacs = this.show_vacancies ? this.desig_vacs[name] || 0 : 0;
         const companies = [...new Set(holders.map((e) => e.company))];
-        const co = companies.length === 1 ? this.color(companies[0]) : "var(--gray-500)";
+        const co = companies.length === 1 ? this.color(companies[0]) : companies.length ? "var(--primary)" : "var(--gray-400)";
         const who = holders.length === 1
             ? `<span class="noc-holder" data-noc-holder="${esc(holders[0].name)}" title="${esc(holders[0].employee_name)}">${this.avatar(holders[0])}<span>${esc(this.short_name(holders[0].employee_name))}</span></span>`
             : holders.length

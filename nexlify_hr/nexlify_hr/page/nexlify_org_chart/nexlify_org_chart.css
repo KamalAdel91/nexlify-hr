@@ -431,7 +431,6 @@
 .noc-dept-icon .noc-ic { width: 16px; height: 16px; }
 
 /* department cards: neutral gray, companies as dots under the name */
-.noc-card.noc-dept { --noc-co: var(--gray-500) !important; }
 .noc-card.noc-dept .noc-card-foot { top: auto; bottom: 8px; }
 .noc-co-dots { display: flex; gap: 5px; margin-top: 1px; }
 .noc-co-dots .noc-dot { width: 9px; height: 9px; }
