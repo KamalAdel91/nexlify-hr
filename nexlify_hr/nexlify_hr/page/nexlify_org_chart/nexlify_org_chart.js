@@ -394,18 +394,42 @@ class NexlifyOrgChart {
         return false;
     }
 
+    // designations view: parent within the loaded designations, and loop check up the chain
+    desig_parent(n) {
+        const p = this.desig_by[n] && this.desig_by[n].parent_designation;
+        return p && p !== n && this.desig_by[p] ? p : null;
+    }
+
+    desig_under(n, ancestor) {
+        const seen = new Set();
+        let p = this.desig_parent(n);
+        while (p && !seen.has(p)) {
+            if (p === ancestor) return true;
+            seen.add(p);
+            p = this.desig_parent(p);
+        }
+        return false;
+    }
+
     can_drop(src, tgt) {
         if (!this.edit_mode || !src || !tgt || src === tgt) return false;
+        if (this.view === "designation") {
+            if (!src.startsWith("g:") || !tgt.startsWith("g:")) return false;
+            const s = src.slice(2), t = tgt.slice(2);
+            return this.desig_parent(s) !== t && !this.desig_under(t, s);
+        }
         const s = this.by_id[src];
         if (!s || !this.by_id[tgt] || s.reports_to === tgt) return false;
         return !this.is_under(tgt, src);
     }
 
     can_drop_root(src) {
+        if (this.view === "designation") return this.edit_mode && !!src && src.startsWith("g:") && !!this.desig_parent(src.slice(2));
         return this.edit_mode && src && this.by_id[src] && !!this.by_id[src].reports_to;
     }
 
     move(src, tgt) {
+        if (this.view === "designation") return this.move_desig(src, tgt);
         const e = this.by_id[src];
         const m = tgt ? this.by_id[tgt] : null;
         let msg = m
@@ -426,6 +450,27 @@ class NexlifyOrgChart {
                     this.render_stats();
                     this.reveal(src);
                     frappe.show_alert({ message: __("Manager updated"), indicator: "green" });
+                },
+            });
+        });
+    }
+
+    move_desig(src, tgt) {
+        const s = src.slice(2), t = tgt ? tgt.slice(2) : null;
+        const msg = t
+            ? __("Put <b>{0}</b> under <b>{1}</b>?", [esc(s), esc(t)])
+            : __("Move <b>{0}</b> to the top level (no parent designation)?", [esc(s)]);
+        frappe.confirm(msg, () => {
+            frappe.call({
+                method: NOC_API + "set_parent_designation",
+                args: { designation: s, parent: t || "" },
+                freeze: true,
+                callback: (r) => {
+                    this.desig_by[s].parent_designation = r.message || null;
+                    if (tgt) this.expanded.add(tgt);
+                    this.build();
+                    this.reveal(src);
+                    frappe.show_alert({ message: __("Designation moved"), indicator: "green" });
                 },
             });
         });
@@ -564,7 +609,7 @@ class NexlifyOrgChart {
             this._smart_back = false;
             this.mode_silent("smart");
         }
-        if (this.view !== "employee" && this.edit_mode) this.set_edit(false);
+        if (this.view === "department" && this.edit_mode) this.set_edit(false);
         this.highlight = null;
         this.build();
         this.expanded = new Set(this.grouped() ? [] : this.roots);
@@ -736,7 +781,10 @@ class NexlifyOrgChart {
         opt("merge", this.merge_depts, dept);
         opt("layout-v", this.layout === "vertical", this.mode === "full");
         opt("layout-h", this.layout === "horizontal", this.mode === "full");
-        opt("edit", this.edit_mode, this.can_edit && !grouped);
+        opt("edit", this.edit_mode, this.can_edit && !dept);
+        this.$wrap && this.$wrap.find(".noc-editbar").text(this.view === "designation"
+            ? __("Edit Mode: drag a designation onto the one above it, or onto empty space to make it top level")
+            : __("Edit Mode: drag an employee onto their new manager, or onto empty space to remove the manager"));
         tb.find('[data-act="edit"], .noc-edit-div').toggle(this.can_edit);
         tb.find(".noc-opt-btn").toggleClass("active", this.edit_mode);
 
@@ -1031,7 +1079,7 @@ class NexlifyOrgChart {
                 ? `<span class="noc-holder" data-noc-desig-list="${esc(name)}" title="${esc(holders.map((e) => e.employee_name).join("\n"))}"><span class="noc-holder-stack">${holders.slice(0, 3).map((e) => this.avatar(e)).join("")}</span><span>${__("{0} employees", [holders.length])}</span></span>`
                 : `<span class="noc-vacant">${__("Vacant")}</span>`;
         return `
-            <div class="noc-card noc-dept noc-desig ${holders.length ? "" : "noc-empty"} ${id === this.highlight ? "noc-hit" : ""}" data-id="${esc(id)}" style="--noc-co:${co}">
+            <div class="noc-card noc-dept noc-desig ${holders.length ? "" : "noc-empty"} ${id === this.highlight ? "noc-hit" : ""}" data-id="${esc(id)}" ${this.edit_mode ? 'draggable="true"' : ""} style="--noc-co:${co}">
                 <div class="noc-card-head">
                     <span class="noc-dept-icon">${noc_icon("award")}</span>
                     <div class="noc-info">

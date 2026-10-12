@@ -139,3 +139,13 @@ def set_reports_to(employee, reports_to=None):
     doc.reports_to = reports_to
     doc.save()
     return doc.reports_to
+
+
+@frappe.whitelist(methods=["POST"])
+def set_parent_designation(designation, parent=None):
+    """Edit Mode drop in the Designations view. Write permission; the loop check runs in Designation validate."""
+    doc = frappe.get_doc("Designation", designation)
+    doc.check_permission("write")
+    doc.parent_designation = parent or None
+    doc.save()
+    return doc.parent_designation
