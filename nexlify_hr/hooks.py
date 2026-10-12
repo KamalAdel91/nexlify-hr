@@ -277,6 +277,7 @@ after_migrate = [
 	"nexlify_hr.sidebar_setup.ensure_hr_org_chart",
 	"nexlify_hr.nexlify_hr.doctype.nexlify_hr_settings.nexlify_hr_settings.seed_on_migrate",
 	"nexlify_hr.hr_flows.setup_workspace_flows",
+	"nexlify_hr.designation_hierarchy.ensure_parent_designation",
 ]
 before_uninstall = "nexlify_hr.hr_flows.remove_workspace_flows"
 
@@ -284,3 +285,10 @@ before_uninstall = "nexlify_hr.hr_flows.remove_workspace_flows"
 app_include_js = ["/assets/nexlify_hr/js/hr_flow.js"]
 app_include_css = ["/assets/nexlify_hr/css/hr_flow.css"]
 page_js = {"organizational-chart": "public/js/organizational_chart_override.js"}
+
+# Parent Designation: the hierarchy behind the Designations view of the Group Org Chart
+doc_events = {
+	"Designation": {
+		"validate": "nexlify_hr.designation_hierarchy.validate_parent_designation",
+	},
+}

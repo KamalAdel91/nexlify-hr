@@ -44,6 +44,16 @@ def get_org_data(company=None):
             limit_page_length=0,
         )
 
+    # designations are shared by all companies; parent_designation is added by nexlify_hr
+    designations = []
+    if _can_read("Designation"):
+        designations = frappe.get_list(
+            "Designation",
+            fields=_existing(["name", "parent_designation"], "Designation"),
+            order_by="name asc",
+            limit_page_length=0,
+        )
+
     vacancies = []
     if _can_read("Job Opening"):
         job_filters = {"status": "Open"}
@@ -92,6 +102,7 @@ def get_org_data(company=None):
     return {
         "employees": employees,
         "departments": departments,
+        "designations": designations,
         "vacancies": vacancies,
         "company_index": company_index,
         "on_leave": sorted(set(on_leave)),
