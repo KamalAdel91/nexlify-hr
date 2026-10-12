@@ -12,6 +12,8 @@ const NOC_LIB = "/assets/nexlify_hr/js/lib/";
 const NOC_NO_DEPT = "d:__none";
 const NOC_GRID_AT = 6; // Smart mode: more direct reports than this -> grid + drill-down
 const NOC_BLANK = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+// cards shared by several companies: a fixed slate that reads on light and dark (the theme primary can be near the card color)
+const NOC_MULTI = "#7C8AA5";
 const NOC_COLORS = ["#1D9E75", "#7F77DD", "#D85A30", "#378ADD", "#D4537E", "#BA7517", "#639922", "#888780"];
 const NOC_ICONS = {
     building: '<rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>',
@@ -1047,7 +1049,7 @@ class NexlifyOrgChart {
             d = this.dept_by[name] || { department_name: __("No Department") };
             companies = d.company ? [d.company] : [];
         }
-        const co = d.company ? this.color(d.company) : companies.length ? "var(--primary)" : "var(--gray-400)";
+        const co = d.company ? this.color(d.company) : companies.length ? NOC_MULTI : "var(--gray-400)";
         const total = this.count(id);
         const vacs = this.show_vacancies ? this.vac_count(id) : 0;
         return `
@@ -1074,7 +1076,7 @@ class NexlifyOrgChart {
         const holders = (this.desig_emps[name] || []).map((k) => this.by_id[k]);
         const vacs = this.show_vacancies ? this.desig_vacs[name] || 0 : 0;
         const companies = [...new Set(holders.map((e) => e.company))];
-        const co = companies.length === 1 ? this.color(companies[0]) : companies.length ? "var(--primary)" : "var(--gray-400)";
+        const co = companies.length === 1 ? this.color(companies[0]) : companies.length ? NOC_MULTI : "var(--gray-400)";
         const who = holders.length === 1
             ? `<span class="noc-holder" data-noc-holder="${esc(holders[0].name)}" title="${esc(holders[0].employee_name)}">${this.avatar(holders[0])}<span>${esc(this.short_name(holders[0].employee_name))}</span></span>`
             : holders.length
