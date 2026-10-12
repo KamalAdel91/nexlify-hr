@@ -257,7 +257,7 @@ class NexlifyOrgChart {
             this.toggle_node(card.getAttribute("data-id"));
         });
 
-        // designation card: the holder's name opens their profile, "N employees" opens the list
+        // designation card: the holder's name opens their profile, "N employees" opens the people dialog
         this.$stage.on("click", "[data-noc-holder]", (e) => {
             if (this.mode === "focus" && $(e.currentTarget).closest(".noc-card").attr("data-id") !== this._focus_center) return;
             e.stopPropagation();
@@ -265,9 +265,9 @@ class NexlifyOrgChart {
             this.open_profile($(e.currentTarget).attr("data-noc-holder"));
         });
         this.$stage.on("click", "[data-noc-desig-list]", (e) => {
-            if (this.mode === "focus" && $(e.currentTarget).closest(".noc-card").attr("data-id") !== this._focus_center) return;
             e.stopPropagation();
-            frappe.set_route("List", "Employee", { designation: $(e.currentTarget).attr("data-noc-desig-list"), status: "Active" });
+            this.hide_hover();
+            this.open_members("g:" + $(e.currentTarget).attr("data-noc-desig-list"));
         });
 
         // employee: click = profile, Ctrl/Cmd+click = form in new tab; department / designation: its people; vacancy: Job Opening
