@@ -604,13 +604,6 @@ class NexlifyOrgChart {
 
     toggle_view(v) {
         this.view = v;
-        if (this.grouped() && this.mode === "smart") {
-            this._smart_back = true;
-            this.mode_silent("focus");
-        } else if (this.view === "employee" && this._smart_back) {
-            this._smart_back = false;
-            this.mode_silent("smart");
-        }
         if (this.view === "department" && this.edit_mode) this.set_edit(false);
         this.highlight = null;
         this.build();
@@ -771,8 +764,6 @@ class NexlifyOrgChart {
 
         tb.find('[data-seg="mode"] button').each((_, b) => $(b).toggleClass("active", $(b).data("v") === this.mode));
         tb.find('[data-seg="view"] button').each((_, b) => $(b).toggleClass("active", $(b).data("v") === this.view));
-        tb.find('[data-seg="mode"] [data-v="smart"]').prop("disabled", grouped)
-            .attr("title", grouped ? __("Only in the Employees view") : "");
 
         const opt = (act, on, enabled = true) =>
             tb.find(`[data-act="${act}"]`).toggleClass("active", !!on).toggleClass("disabled", !enabled);
