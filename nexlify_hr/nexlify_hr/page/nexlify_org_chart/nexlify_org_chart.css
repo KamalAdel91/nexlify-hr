@@ -633,4 +633,11 @@
 .noc-f-center .noc-card .noc-avatar, .noc-f-center .noc-card .noc-dept-icon { width: 48px; height: 48px; font-size: 15px; }
 
 /* ---------- designations view ---------- */
-.noc-card.noc-desig.noc-empty { opacity: .55; border-style: dashed; }
+.noc-card.noc-desig.noc-empty { border-style: dashed; }
+.noc-holder { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; max-width: 100%; }
+.noc-holder > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.noc-holder:hover > span:last-child { text-decoration: underline; }
+.noc-card .noc-holder .noc-avatar { width: 20px; height: 20px; font-size: 9px; flex: none; }
+.noc-holder-stack { display: inline-flex; }
+.noc-holder-stack .noc-avatar + .noc-avatar { margin-inline-start: -6px; box-shadow: 0 0 0 2px var(--card-bg, #fff); }
+.noc-vacant { font-style: italic; color: var(--text-muted); }
