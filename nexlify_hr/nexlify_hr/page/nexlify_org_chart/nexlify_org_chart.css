@@ -640,3 +640,18 @@
 .noc-holder-stack { display: inline-flex; }
 .noc-holder-stack .noc-avatar + .noc-avatar { margin-inline-start: -6px; box-shadow: 0 0 0 2px var(--card-bg, #fff); }
 .noc-vacant { font-style: italic; color: var(--text-muted); }
+
+/* ---------- department / designation people dialog ---------- */
+.noc-members .noc-m-icon { width: 64px; height: 64px; border-radius: 18px; flex: none; }
+.noc-members .noc-m-icon .noc-ic { width: 28px; height: 28px; }
+.noc-m-n { margin-inline-start: 6px; font-weight: 600; color: var(--text-color); }
+.noc-m-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 14px; }
+.noc-m-bar .noc-m-search { flex: 1 1 220px; min-width: 0; }
+.noc-m-scope { flex: none; }
+.noc-m-sec { display: flex; align-items: center; gap: 6px; }
+.noc-m-sec .noc-ic { width: 13px; height: 13px; }
+.noc-m-group:first-child .noc-m-sec { margin-top: 4px; }
+.noc-m-row .noc-report-name { display: flex; align-items: center; gap: 6px; }
+.noc-m-empty { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 28px 0 12px; color: var(--text-muted); font-size: var(--text-sm); }
+.noc-m-empty > .noc-ic { width: 26px; height: 26px; opacity: .6; }
+.noc-m-none { display: none; padding: 18px 4px; text-align: center; font-size: var(--text-sm); }

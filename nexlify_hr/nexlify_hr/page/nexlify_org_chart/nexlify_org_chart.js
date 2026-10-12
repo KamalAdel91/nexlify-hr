@@ -270,7 +270,7 @@ class NexlifyOrgChart {
             frappe.set_route("List", "Employee", { designation: $(e.currentTarget).attr("data-noc-desig-list"), status: "Active" });
         });
 
-        // employee: click = profile, Ctrl/Cmd+click = form in new tab; department / designation: expand; vacancy: Job Opening
+        // employee: click = profile, Ctrl/Cmd+click = form in new tab; department / designation: its people; vacancy: Job Opening
         this.$stage.on("click", ".noc-card", (e) => {
             const id = $(e.currentTarget).attr("data-id");
             this.hide_hover();
@@ -281,8 +281,9 @@ class NexlifyOrgChart {
                 return;
             }
             if (this.mode === "focus" && id !== this._focus_center) return this.set_focus(id);
+            // department / designation: the card shows its people; its arrow still expands / drills down
+            if (kind === "dept") return this.open_members(id);
             if (this.mode === "smart" && this.drill_toggle(e.currentTarget, false)) return;
-            if (kind === "dept") return this.toggle_node(id);
             this.open_profile(id);
         });
 
@@ -1601,5 +1602,163 @@ class NexlifyOrgChart {
                 ${fields ? `<div class="noc-fields">${fields}</div>` : ""}
                 ${kids.length ? `<div class="noc-section-title">${__("Direct Reports")}</div><div class="noc-reports">${reports}</div>` : ""}
             </div>`;
+    }
+
+    // ---------- department / designation: the people in it ----------
+    group_info(id) {
+        if (id.startsWith("g:")) {
+            const name = id.slice(2);
+            return { name, kind: __("Designation"), icon: "award", sub_label: __("Designations under it"), filter: { designation: name } };
+        }
+        if (id === NOC_NO_DEPT) return { name: __("No Department"), kind: __("Department"), icon: "building", sub_label: __("Sub-departments"), filter: null };
+        if (id.startsWith("d:m:")) {
+            const m = this.mdept[id.slice(4)] || { department_name: id.slice(4) };
+            const names = this.departments.filter((d) => (d.department_name || d.name).trim() === m.department_name).map((d) => d.name);
+            return { name: m.department_name, kind: __("Department"), icon: "building", sub_label: __("Sub-departments"), filter: { department: ["in", names] } };
+        }
+        const d = this.dept_by[id.slice(2)] || {};
+        return { name: d.department_name || id.slice(2), kind: __("Department"), icon: "building", sub_label: __("Sub-departments"), filter: { department: id.slice(2) } };
+    }
+
+    group_people(id) {
+        return id.startsWith("g:")
+            ? (this.desig_emps[id.slice(2)] || []).slice()
+            : (this.children[id] || []).filter((k) => this.kind(k) === "emp");
+    }
+
+    group_subs(id) {
+        return (this.children[id] || []).filter((k) => this.kind(k) === "dept");
+    }
+
+    // [[group id, [employee ids]], ...] for the group and everything under it
+    group_sections(id, deep) {
+        const out = [[id, this.group_people(id)]];
+        if (!deep) return out;
+        const seen = new Set([id]);
+        const walk = (g) => this.group_subs(g).forEach((k) => {
+            if (seen.has(k)) return;
+            seen.add(k);
+            out.push([k, this.group_people(k)]);
+            walk(k);
+        });
+        walk(id);
+        return out.filter(([, ids]) => ids.length);
+    }
+
+    open_members(id) {
+        if (!this.mdialog) {
+            this.mdialog = new frappe.ui.Dialog({
+                title: __("People"),
+                size: "large",
+                fields: [{ fieldtype: "HTML", fieldname: "body" }],
+                primary_action_label: __("Open in Employee List"),
+                primary_action: () => {
+                    const f = this.group_info(this._members).filter;
+                    this.mdialog.hide();
+                    if (f) frappe.set_route("List", "Employee", { ...f, status: "Active" });
+                },
+                secondary_action_label: __("Locate in Chart"),
+                secondary_action: () => {
+                    this.mdialog.hide();
+                    this.reveal(this._members);
+                },
+            });
+            this.mdialog.$wrapper.addClass("noc-dialog");
+            this.$members = this.mdialog.fields_dict.body.$wrapper;
+            this.$members.on("click", "[data-noc-emp]", (e) => {
+                const emp = $(e.currentTarget).attr("data-noc-emp");
+                if (e.ctrlKey || e.metaKey) return window.open(frappe.utils.get_form_link("Employee", emp), "_blank");
+                this.mdialog.hide();
+                this.open_profile(emp);
+            });
+            this.$members.on("click", "[data-noc-scope]", (e) => {
+                this._members_deep = $(e.currentTarget).attr("data-noc-scope") === "all";
+                this.render_members();
+            });
+            this.$members.on("click", "[data-noc-group]", (e) => this.open_members($(e.currentTarget).attr("data-noc-group")));
+            this.$members.on("input", ".noc-m-search", frappe.utils.debounce(() => this.filter_members(), 150));
+        }
+        this._members = id;
+        this._members_deep = false;
+        this._members_q = "";
+        this.render_members();
+        this.mdialog.set_title(this.group_info(id).kind);
+        this.mdialog.get_primary_btn().toggle(!!this.group_info(id).filter);
+        this.mdialog.show();
+    }
+
+    render_members() {
+        const id = this._members;
+        const g = this.group_info(id);
+        const here = this.group_people(id);
+        const all = this.group_sections(id, true).reduce((n, [, ids]) => n + ids.length, 0);
+        const subs = this.group_subs(id).length;
+        const deep = this._members_deep && all > here.length;
+        const sections = this.group_sections(id, deep);
+        const people = sections.flatMap(([, ids]) => ids).map((k) => this.by_id[k]);
+        const companies = [...new Set(people.map((e) => e.company))];
+        const co = companies.length === 1 ? this.color(companies[0]) : companies.length ? NOC_MULTI : "var(--gray-400)";
+        const by_company = companies.map((c) => [c, people.filter((e) => e.company === c).length]).sort((a, b) => b[1] - a[1]);
+
+        const row = (k) => {
+            const e = this.by_id[k];
+            const sub = id.startsWith("g:") ? this.clean_dept(e.department) : e.designation;
+            const q = [e.employee_name, e.name, e.employee_number, e.designation, e.department].filter(Boolean).join(" ").toLowerCase();
+            return `<button class="noc-report noc-m-row" data-noc-emp="${esc(k)}" data-q="${esc(q)}" style="--noc-co:${this.color(e.company)}" title="${__("Ctrl+click to open the Employee form")}">
+                        ${this.avatar(e, "noc-avatar-sm")}
+                        <span class="noc-report-text">
+                            <span class="noc-report-name">${esc(e.employee_name)}${this.badges(e)}</span>
+                            <span class="noc-report-sub">${esc([sub, k].filter(Boolean).join(" · "))}</span>
+                        </span>
+                    </button>`;
+        };
+        const list = sections.map(([gid, ids]) => {
+            const title = sections.length > 1 ? `<div class="noc-section-title noc-m-sec">${noc_icon(g.icon)}${esc(this.group_info(gid).name)}<span class="noc-loose-count">${ids.length}</span></div>` : "";
+            const sorted = ids.slice().sort((a, b) => (this.reports[b] || []).length - (this.reports[a] || []).length
+                || (this.by_id[a].employee_name || "").localeCompare(this.by_id[b].employee_name || ""));
+            return `<div class="noc-m-group">${title}<div class="noc-reports">${sorted.map(row).join("")}</div></div>`;
+        }).join("");
+
+        this.$members.html(`
+            <div class="noc-profile noc-members" style="--noc-co:${co}">
+                <div class="noc-profile-hero">
+                    <span class="noc-dept-icon noc-m-icon">${noc_icon(g.icon)}</span>
+                    <div class="noc-profile-main">
+                        <div class="noc-profile-name">${esc(g.name)}</div>
+                        <div class="noc-profile-title">${esc(g.kind)} · ${this.parent[id] && this.kind(this.parent[id]) === "dept"
+                            ? __("Under {0}", [`<a class="noc-link" data-noc-group="${esc(this.parent[id])}">${esc(this.group_info(this.parent[id]).name)}</a>`])
+                            : __("Top level")}</div>
+                        ${by_company.length ? `<div class="noc-profile-chips">${by_company.map(([c, n]) =>
+                            `<span class="noc-chip"><span class="noc-dot" style="background:${this.color(c)}"></span>${esc(c)}<b class="noc-m-n">${n}</b></span>`).join("")}</div>` : ""}
+                    </div>
+                </div>
+                <div class="noc-kpis">
+                    <div><b>${here.length}</b><span>${__("In it directly")}</span></div>
+                    <div><b>${all}</b><span>${__("Including those under it")}</span></div>
+                    <div><b>${subs}</b><span>${esc(g.sub_label)}</span></div>
+                </div>
+                ${all ? `<div class="noc-m-bar">
+                    ${all > here.length ? `<div class="noc-seg noc-m-scope">
+                        <button data-noc-scope="here" class="${deep ? "" : "active"}">${__("Directly")} · ${here.length}</button>
+                        <button data-noc-scope="all" class="${deep ? "active" : ""}">${__("Including under it")} · ${all}</button>
+                    </div>` : ""}
+                    <input class="form-control noc-m-search" placeholder="${__("Search by name, code or title")}">
+                </div>` : ""}
+                ${people.length ? list : `<div class="noc-m-empty">${noc_icon("users")}<div>${id.startsWith("g:") ? __("No one holds this designation yet") : __("No employees directly in this department")}</div>
+                    ${all ? `<button class="btn btn-default btn-xs" data-noc-scope="all">${__("Show the {0} under it", [all])}</button>` : ""}</div>`}
+                <div class="noc-m-none text-muted">${__("No match")}</div>
+            </div>`);
+        // keep the search when switching Directly / Including under it
+        if (this._members_q) {
+            this.$members.find(".noc-m-search").val(this._members_q);
+            this.filter_members();
+        }
+    }
+
+    filter_members() {
+        const q = (this._members_q = (this.$members.find(".noc-m-search").val() || "").trim().toLowerCase());
+        this.$members.find(".noc-m-row").each((_, el) => $(el).toggle(!q || el.getAttribute("data-q").includes(q)));
+        this.$members.find(".noc-m-group").each((_, el) => $(el).toggle(!!$(el).find(".noc-m-row:visible").length));
+        this.$members.find(".noc-m-none").toggle(!!q && !this.$members.find(".noc-m-row:visible").length);
     }
 }
