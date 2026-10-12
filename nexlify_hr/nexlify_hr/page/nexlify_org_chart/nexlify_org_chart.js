@@ -70,8 +70,9 @@ class NexlifyOrgChart {
         this.by_id = {};
         this.dept_by = {};
         this.desig_by = {};
-        this.desig_emps = {};
-        this.desig_vacs = {};
+        this.group_emps = {}; // department / designation node -> employee ids in it (they are shown inside the card)
+        this.group_vacs = {}; // department / designation node -> open positions
+        this.emp_group = {}; // employee -> its department / designation node
         this.vac_by = {};
         this.reports = {};
         this.children = {};
@@ -525,6 +526,15 @@ class NexlifyOrgChart {
         });
         this._team = {};
         this._count = {};
+        this._vcount = {};
+        this.group_emps = {};
+        this.group_vacs = {};
+        this.emp_group = {};
+        const hold = (g, e) => {
+            (this.group_emps[g] ||= []).push(e);
+            this.emp_group[e] = g;
+        };
+        const opening = (g, v) => (this.group_vacs[g] = (this.group_vacs[g] || 0) + (cint(v.planned_vacancies) || 1));
 
         const vacs = this.show_vacancies ? this.vacancies : [];
         if (this.view === "employee") {
@@ -555,24 +565,21 @@ class NexlifyOrgChart {
                 const pid = p && p !== d.name && this.dept_by[p] ? key(p) : null;
                 pid && pid !== id ? add(pid, id) : roots.push(id);
             });
+            // departments: the structure only (Parent Department); its people are shown inside the card / the people dialog
             const home = (dept) => (dept && this.dept_by[dept] ? key(dept) : NOC_NO_DEPT);
-            this.employees.forEach((e) => add(home(e.department), e.name));
-            vacs.forEach((v) => add(home(v.department), "v:" + v.name));
-            if (ch[NOC_NO_DEPT]) roots.push(NOC_NO_DEPT);
+            this.employees.forEach((e) => hold(home(e.department), e.name));
+            vacs.forEach((v) => opening(home(v.department), v));
+            if (this.group_emps[NOC_NO_DEPT] || this.group_vacs[NOC_NO_DEPT]) roots.push(NOC_NO_DEPT);
         } else {
             // designations: the job structure only (Parent Designation), filled or vacant;
             // the people holding each designation are shown inside its card, not as nodes
             const known = (n) => n && this.desig_by[n];
-            this.desig_emps = {};
-            this.desig_vacs = {};
             this.designations.forEach((d) => {
                 const p = d.parent_designation;
                 known(p) && p !== d.name ? add("g:" + p, "g:" + d.name) : roots.push("g:" + d.name);
             });
-            this.employees.forEach((e) => known(e.designation) && (this.desig_emps[e.designation] ||= []).push(e.name));
-            vacs.forEach((v) => {
-                if (known(v.designation)) this.desig_vacs[v.designation] = (this.desig_vacs[v.designation] || 0) + (cint(v.planned_vacancies) || 1);
-            });
+            this.employees.forEach((e) => known(e.designation) && hold("g:" + e.designation, e.name));
+            vacs.forEach((v) => known(v.designation) && opening("g:" + v.designation, v));
         }
 
         this.children = ch;
@@ -715,8 +722,8 @@ class NexlifyOrgChart {
 
             const kids = this.children[id] || [];
             html += kids.length
-                ? `${line}<div class="noc-f-title">${this.kind(id) !== "dept" ? __("Direct Reports") : id.startsWith("g:") ? __("Under this designation") : __("In this department")}<span class="noc-loose-count">${kids.length}</span></div>${grid(kids)}`
-                : `<div class="noc-f-empty">${__("No direct reports")}</div>`;
+                ? `${line}<div class="noc-f-title">${this.kind(id) !== "dept" ? __("Direct Reports") : id.startsWith("g:") ? __("Under this designation") : __("Sub-departments")}<span class="noc-loose-count">${kids.length}</span></div>${grid(kids)}`
+                : `<div class="noc-f-empty">${this.kind(id) !== "dept" ? __("No direct reports") : id.startsWith("g:") ? __("No designations under it") : __("No sub-departments")}</div>`;
         }
         if (loose.length && (!id || !this.parent[id])) {
             html += `<div class="noc-f-loose"><div class="noc-f-title">${noc_icon("users")}${this.loose_title()}<span class="noc-loose-count">${loose.length}</span></div>${grid(loose)}</div>`;
@@ -862,16 +869,19 @@ class NexlifyOrgChart {
         return (this._team[id] = kids.reduce((n, k) => n + 1 + this.team(k, seen), 0));
     }
 
-    // employees inside a tree node (department view)
+    // employees in a department / designation node and everything under it
     count(id) {
         if (this._count[id] != null) return this._count[id];
-        const kids = this.children[id] || [];
-        return (this._count[id] = kids.reduce((n, k) => n + (this.kind(k) === "emp" ? 1 : 0) + this.count(k), 0));
+        this._count[id] = 0; // guards against a loop in old data
+        return (this._count[id] = (this.group_emps[id] || []).length
+            + (this.children[id] || []).reduce((n, k) => n + (this.kind(k) === "dept" ? this.count(k) : 0), 0));
     }
 
     vac_count(id) {
-        return (this.children[id] || []).reduce((n, k) =>
-            n + (this.kind(k) === "vac" ? (cint(this.vac_by[k.slice(2)].planned_vacancies) || 1) : 0) + this.vac_count(k), 0);
+        if (this._vcount[id] != null) return this._vcount[id];
+        this._vcount[id] = 0;
+        return (this._vcount[id] = (this.group_vacs[id] || 0)
+            + (this.children[id] || []).reduce((n, k) => n + (this.kind(k) === "dept" ? this.vac_count(k) : 0), 0));
     }
 
     card_el(id) {
@@ -1051,6 +1061,7 @@ class NexlifyOrgChart {
             companies = d.company ? [d.company] : [];
         }
         const co = d.company ? this.color(d.company) : companies.length ? NOC_MULTI : "var(--gray-400)";
+        const direct = (this.group_emps[id] || []).length;
         const total = this.count(id);
         const vacs = this.show_vacancies ? this.vac_count(id) : 0;
         return `
@@ -1065,7 +1076,7 @@ class NexlifyOrgChart {
                     </div>
                 </div>
                 <div class="noc-card-foot">
-                    <span class="noc-tag noc-tag-team" title="${__("Employees")}">${noc_icon("users")}${total}</span>
+                    <span class="noc-tag noc-tag-team" title="${__("In it directly / Including those under it")}">${noc_icon("users")}${direct === total ? total : `${direct} / ${total}`}</span>
                     ${vacs ? `<span class="noc-tag noc-tag-vac" title="${__("Open Positions")}">${noc_icon("briefcase")}${vacs}</span>` : ""}
                 </div>
                 ${toggle}
@@ -1074,8 +1085,8 @@ class NexlifyOrgChart {
 
     desig_card(id, toggle) {
         const name = id.slice(2);
-        const holders = (this.desig_emps[name] || []).map((k) => this.by_id[k]);
-        const vacs = this.show_vacancies ? this.desig_vacs[name] || 0 : 0;
+        const holders = (this.group_emps[id] || []).map((k) => this.by_id[k]);
+        const vacs = this.show_vacancies ? this.group_vacs[id] || 0 : 0;
         const companies = [...new Set(holders.map((e) => e.company))];
         const co = companies.length === 1 ? this.color(companies[0]) : companies.length ? NOC_MULTI : "var(--gray-400)";
         const who = holders.length === 1
@@ -1166,7 +1177,7 @@ class NexlifyOrgChart {
             this._find_i = 0;
         }
         let id = this._find_hits[this._find_i];
-        if (this.view === "designation") id = "g:" + (this.by_id[id].designation || "");
+        if (this.grouped()) id = this.emp_group[id] || id;
         this.reveal(id);
         this.spotlight(id);
         if (this._find_hits.length > 1) {
@@ -1621,9 +1632,7 @@ class NexlifyOrgChart {
     }
 
     group_people(id) {
-        return id.startsWith("g:")
-            ? (this.desig_emps[id.slice(2)] || []).slice()
-            : (this.children[id] || []).filter((k) => this.kind(k) === "emp");
+        return (this.group_emps[id] || []).slice();
     }
 
     group_subs(id) {
